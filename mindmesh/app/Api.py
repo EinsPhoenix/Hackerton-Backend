@@ -398,28 +398,30 @@ def upvote_text(
 
 
 # delete text
-@api.delete("/Text/{thread_id}", response={204: None, 404: NotFoundSchema})
+@api.delete("/Text/{thread_id}", response={204: None, 401: dict, 403: dict, 404: dict, 500: dict})
 def delete_text(request, thread_id: int, authorization: str = Header(None)):
-    try:
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
+    try:
         thread = ThreadHelper.get_thread_by_id(thread_id)
+        if thread is None:
+            return 404, {"success": False, "message": "Thread not found"}
 
         if thread.created_by != user:
-            return 404, None
+            return 403, {"success": False, "message": "Forbidden: Not authorized to delete this thread"}
 
-        try:
-            thread.delete()
-            return 204, None
-        except Exception as e:
-            logger.error(f"Error deleting thread: {str(e)}")
-            raise HttpError(404, "Error deleting thread")
+        thread.delete()
+        return 204, None
+
+    except Http404:
+        logger.warning(f"Thread with ID '{thread_id}' not found for deletion")
+        return 404, {"success": False, "message": "Thread not found"}
 
     except Exception as e:
-        logger.error(f"Error occurred while processing request: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while deleting thread {thread_id} by user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # Share, delet and get Questions
