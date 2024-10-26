@@ -273,7 +273,7 @@ class GenerateResponse:
 
     def summarize_text(self, input_text, input_title, input_language):
         prompt = f"""
-        I have the following text: {input_text}, with the title {input_title}. Your task is to strictly summarize this text in 1 to 3 sentences in the specified language {input_language}.
+        I have the following text: {input_text}, with the title {input_title}. Your task is to strictly summarize this text in 1 sentence in the specified language {input_language}.
 
         -Do not interpret or add any additional information.
         -Be especially careful with names of individuals and companies.
@@ -313,7 +313,7 @@ class GenerateResponse:
 
     def summarieze_tags(self, input_text, input_title, input_language, input_prefs):
         prompt = f"""
-        I have the following text: {input_text}, with the title {input_title}. Your task is to strictly summarize this text in 1 to 3 sentences in the specified language {input_language}. Also give the text from the following list: {input_prefs} one main Tag and from 1 to 3 sub tags
+        I have the following text: {input_text}, with the title {input_title}. Your task is to strictly summarize this text in 1 sentence in the specified language {input_language}. Also give the text from the following list: {input_prefs} one main Tag and from 1 to 3 sub tags
         The Sub Tags can only be chosen from the list of tags, and Subtag one is more important than 3 or 2.        
         Return your response as JSON in the following format:
 
