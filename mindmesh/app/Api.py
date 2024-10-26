@@ -224,27 +224,27 @@ def add_new_text(
         return 500, {"success": False, "message": "An unexpected error occurred"}
 
 # Get Image for profile or thread
-@api.post("/GetImages", response={201: ImageResponseSchema, 404: NotFoundSchema})
+@api.post("/GetImages", response={201: ImageResponseSchema, 401: dict, 400: dict, 404: NotFoundSchema, 500: dict})
 def get_image(request, payload: ImagePayload, authorization: str = Header(None)):
-    try:
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
+    try:
         if payload.content_type == "thread":
             object_from_id = get_object_or_404(Thread, id_thread=payload.object_id)
         elif payload.content_type == "userpicture":
             userProf = get_object_or_404(User, id=payload.object_id)
             object_from_id = get_object_or_404(UserProfile, user=userProf)
         else:
-            return 404, {"success": False, "message": str(e)}
+            return 400, {"success": False, "message": f"Invalid content type: {payload.content_type}"}
 
         image_instance = get_object_or_404(
             UploadedImage, image_id=object_from_id.image_url.image_id
         )
 
         if not image_instance.image:
-            return 404, {"success": False, "message": str(e)}
+            return 404, {"success": False, "message": "Image not found"}
 
         image_url = request.build_absolute_uri(image_instance.image.url)
 
@@ -257,9 +257,14 @@ def get_image(request, payload: ImagePayload, authorization: str = Header(None))
 
         return 201, response_data
 
+    except Http404:
+        return 404, {"success": False, "message": "Requested object or image not found"}
+    except ValueError as e:
+        logger.warning(f"Invalid payload content type: {payload.content_type} for user {user.id}")
+        return 400, {"success": False, "message": str(e)}
     except Exception as e:
-        logger.error(f"Error fetching image: {str(e)}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error fetching image for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 # Update a specific text
 @api.post(
