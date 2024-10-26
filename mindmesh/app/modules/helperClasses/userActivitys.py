@@ -1,17 +1,7 @@
 # Standardbibliotheken
-import json
-import logging
 import os
-import time
-import requests
 
 # Django-Bibliotheken
-from django.contrib.auth.hashers import check_password, make_password
-from django.db import transaction
-from django.db.models import Max
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from django.db.models import Q
 
 # Google Auth-Bibliotheken
@@ -19,9 +9,7 @@ from google.auth.transport import requests
 from google.oauth2 import id_token
 
 # Drittanbieter-Bibliotheken
-from ninja import NinjaAPI,Header
-from ninja.errors import HttpError
-from typing import List
+from ninja import Header
 from fastapi import HTTPException
 
 
@@ -31,31 +19,10 @@ from ...models import (
     User,
     Tag,
     UserProfile,
-    UserActivity,
     Comment,
-    UserPreferences,
-    SharedQuestion,
     Job
 
 )
-from ..aiModule import GenerateResponse
-from .textByPrefs import TextsByPrefs
-from ...schema import (
-    NotFoundSchema,
-    CreateThreadSchema,
-    UpdateThreadSchema,
-    CreateUserSchema,
-    ThreadResponseSchema,
-    CheckQuestionSchema,
-    TagGivingSchema,
-    UserPrefsResponse,
-    UpvoteTypeResponse,
-    SharedQuestionResponseSchema,
-    CreateSharedQuestionSchema,
-    PasswordConfirmationSchema,
-    UserSchema
-)
-
 import datetime
 import jwt
 import random

@@ -1,9 +1,3 @@
-# Standardbibliotheken
-import json
-import logging
-import os
-import time
-
 # Django-Bibliotheken
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import transaction
@@ -11,46 +5,20 @@ from django.db.models import Max
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.db.models import Q
+
 from django.contrib.contenttypes.models import ContentType
-from .userActivitys import get_user_from_token,create_custom_token, perform_search
 
-# Google Auth-Bibliotheken
-from google.auth.transport import requests
-from google.oauth2 import id_token
 
-# Drittanbieter-Bibliotheken
-from ninja import NinjaAPI
-from ninja.errors import HttpError
-from typing import List
-from fastapi import HTTPException
 
 # Lokale Module
 from ...models import (
     Thread,
     User,
-    Tag,
-    UserProfile,
-    UserActivity,
     Comment,
-    UserPreferences,
     SharedQuestion,
     ReportModel
 )
 from ...schema import (
-    NotFoundSchema,
-    CreateThreadSchema,
-    UpdateThreadSchema,
-    CreateUserSchema,
-    ThreadResponseSchema,
-    CheckQuestionSchema,
-    TagGivingSchema,
-    UserPrefsResponse,
-    UpvoteTypeResponse,
-    SharedQuestionResponseSchema,
-    CreateSharedQuestionSchema,
-    PasswordConfirmationSchema,
-    UserSchema,
     ReportPayload
 )
 
