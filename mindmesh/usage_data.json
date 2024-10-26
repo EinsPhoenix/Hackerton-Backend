@@ -6,6 +6,11 @@
                     "prompt_token_count": 141,
                     "candidates_token_count": 99,
                     "total_token_count": 240
+                },
+                {
+                    "prompt_token_count": 304,
+                    "candidates_token_count": 212,
+                    "total_token_count": 516
                 }
             ],
             "errors": 0
@@ -16,6 +21,16 @@
                     "prompt_token_count": 141,
                     "candidates_token_count": 89,
                     "total_token_count": 230
+                },
+                {
+                    "prompt_token_count": 315,
+                    "candidates_token_count": 111,
+                    "total_token_count": 426
+                },
+                {
+                    "prompt_token_count": 304,
+                    "candidates_token_count": 123,
+                    "total_token_count": 427
                 }
             ],
             "errors": 0

@@ -598,10 +598,7 @@ def generate_quiz(
 
 
 # AI correcting Questions and answers
-@api.post(
-    "/Ai/CheckQuestions/{thread_id}/{language}",
-    response={200: dict, 404: NotFoundSchema},
-)
+@api.post("/Ai/CheckQuestions/{thread_id}/{language}",response={200: dict, 404: NotFoundSchema})
 def check_answers(
     request,
     thread_id: int,
@@ -702,32 +699,29 @@ def gen_random_top(request, thread_id, language, authorization: str = Header(Non
 
 
 # AI chosing prefs for you
-@api.post("/Ai/WeightPrefs", response={200: dict, 201: dict, 404: NotFoundSchema})
+@api.post("/Ai/WeightPrefs", response={200: dict, 201: dict, 400: dict, 401: dict, 500: dict})
 def weight_user_prefs(
     request, payload: UserPrefsResponse, authorization: str = Header(None)
 ):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
+    logger.info(f"User {user.id} is weighting preferences")
+
+    chosen_prefs = payload.prefs
+    UserPreferences.objects.filter(user=user).delete()
+
     try:
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
-
         generate_response = GenerateResponse()
-        logger.info("Weighting user preferences")
-
-        chosen_prefs = payload.prefs
-
-        UserPreferences.objects.filter(user=user).delete()
-
         user_pref_response = generate_response.weight_userPrefs(chosen_prefs)
 
         if isinstance(user_pref_response, str):
             try:
                 user_pref_response = json.loads(user_pref_response)
             except json.JSONDecodeError:
-                return {
-                    "success": False,
-                    "message": "Invalid JSON response from weight_userPrefs",
-                }
+                logger.error("Invalid JSON response from weight_userPrefs")
+                return 400, {"success": False, "message": "Invalid JSON response from weight_userPrefs"}
 
         saved_prefs = []
         for pref in user_pref_response.get("preferences", []):
@@ -742,10 +736,11 @@ def weight_user_prefs(
                 {"preference": user_pref.preference, "weight": user_pref.weight}
             )
 
-        return {"success": True, "preferences": saved_prefs}
+        return 201, {"success": True, "preferences": saved_prefs}
+
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Error occurred while weighting user preferences for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # Ai gens tags for text
