@@ -150,30 +150,30 @@ def get_texts_for_user(request, thread_id: int, authorization: str = Header(None
 
 
 # get all texts with a specific tag
-@api.get(
-    "/Texts/Tag/{tag_name}",
-    response={201: List[ThreadResponseSchema], 404: NotFoundSchema},
-)
-def get_texts_by_tag(request, tag_name, authorization: str = Header(None)):
-    try:
+@api.get("/Texts/Tag/{tag_name}", response={200: List[ThreadResponseSchema], 401: dict, 404: NotFoundSchema, 500: dict})
+def get_texts_by_tag(request, tag_name: str, authorization: str = Header(None)):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
+    try:
         tag = get_object_or_404(Tag, name=tag_name)
 
         main_threads = Thread.objects.filter(main_tag=tag)
         subtag_threads = Thread.objects.filter(subtags=tag)
 
         threads = list(main_threads) + list(subtag_threads)
-
-        return 201, [
+        formatted_response = [
             ThreadHelper.format_thread_response(thread, request) for thread in threads
         ]
+        
+        return 200, formatted_response
 
+    except Http404:
+        return 404, {"success": False, "message": f"Tag '{tag_name}' not found"}
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while fetching threads by tag '{tag_name}' for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # new text add
