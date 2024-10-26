@@ -68,6 +68,7 @@ from .modules.helperClasses.userPrefsUpvotes import (
     handle_thread_vote,
     handle_comment_vote,
     handle_shared_vote,
+    handle_thread_clicked
 )
 from .modules.helperClasses.userProfileLogin import (
     handle_existing_user,
@@ -1244,5 +1245,19 @@ def delete_comment(request, comment_id: int, authorization: str = Header(None)):
 
         comment.delete()
         return 201, {"success": True, "message": "Comment deleted successfully"}
+    except Exception as e:
+        return 404, {"message": f"Failure: {str(e)}", "success": False}
+
+
+
+@api.get("/Clicked/{thread_id}", response={201: dict, 404: NotFoundSchema})
+def click_thread(request, thread_id: int, authorization: str = Header(None)):
+    try:
+        user = get_user_from_token(authorization)
+        if user is None:
+            return 404, {"success": False, "message": "User not found"}
+        
+        return handle_thread_clicked(thread_id, user, 1.3)
+    
     except Exception as e:
         return 404, {"message": f"Failure: {str(e)}", "success": False}

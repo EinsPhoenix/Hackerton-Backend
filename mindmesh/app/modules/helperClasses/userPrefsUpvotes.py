@@ -87,7 +87,7 @@ def update_preferences(user_activity, thread, delta):
         print(main_tag.name)
         return
 
-    if preference.weight < 100 and preference.weight > 0.05:
+    if preference.weight < 100 and preference.weight > 0.1:
         preference.weight = min(100, preference.weight + delta)  
         preference.save()
 
@@ -98,9 +98,32 @@ def update_preferences(user_activity, thread, delta):
             return
         
         if preference.weight < 100 and preference.weight > 0.01:
-            preference.weight = min(100, preference.weight + delta * 0.01)  
+            preference.weight = min(100, preference.weight + delta * 0.05)  
             preference.save()
 
+def handle_thread_clicked(thread, user, delta):
+    try:
+        main_tag = thread.main_tag
+        preference = UserPreferences.objects.get(user=user, preference=main_tag.name)
+    except UserPreferences.DoesNotExist:
+        return 404, {"succes":False, "message":"Userpreferences do not exist"}
+    
+    if preference.weight < 100 and preference.weight > 0.05:
+        preference.weight = min(100, preference.weight )  
+        preference.save()
+
+    for subtag in thread.subtags.all():
+        try:
+            preference = UserPreferences.objects.get(user, preference=subtag.name)
+        except UserPreferences.DoesNotExist:
+            return 404, {"succes":False, "message":"Userpreferences do not exist"}
+        
+        if preference.weight < 100 and preference.weight > 0.01:
+            preference.weight = min(100, preference.weight + delta * 0.01)  
+            preference.save()
+            
+        return 201, {"succes":True, "message": "Weight was updated successfully"}
+    
 
 def handle_thread_vote(user_activity, thread, upvote_type):
     if upvote_type == "upvote":
