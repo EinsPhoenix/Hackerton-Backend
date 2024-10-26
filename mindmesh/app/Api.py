@@ -501,22 +501,30 @@ def get_shared_questions_by_thread(
 
 
 # delete shared question
-@api.delete(
-    "/ManageSharedQuestion/{question_id}", response={204: dict, 404: NotFoundSchema}
-)
+@api.delete("/ManageSharedQuestion/{question_id}", response={204: dict, 401: dict, 404: dict, 500: dict})
 def delete_shared_question(
     request, question_id: int, authorization: str = Header(None)
 ):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
     try:
-        user = get_user_from_token(authorization)
-        ShareQuestionHelper.delete_shared_question(user, question_id)
+        deleted = ShareQuestionHelper.delete_shared_question(user, question_id)
+        
+        if not deleted:
+            logger.warning(f"Shared question ID {question_id} not found for user {user.id}")
+            return 404, {"success": False, "message": "Shared question not found"}
+
         return 204, {"success": True, "message": "Deleted"}
 
     except HttpError as e:
+        logger.error(f"HttpError occurred while deleting shared question ID {question_id} for user {user.id}: {str(e)}")
         return e.status_code, {"success": False, "message": str(e)}
+
     except Exception as e:
-        logger.error(f"Error occurred while deleting shared question: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while deleting shared question ID {question_id} for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # Token veryfizierung
@@ -532,9 +540,7 @@ def verify_token(request, payload: GoogleVerificationSchema):
         return 404, {"success": False, "message": str(e)}
 
 
-@api.post(
-    "/CreateOrLoginUserWithMail", response={201: dict, 200: dict, 404: NotFoundSchema}
-)
+@api.post("/CreateOrLoginUserWithMail", response={201: dict, 200: dict, 404: NotFoundSchema})
 def create_user(
     request, payload: Form[CreateUserSchema], file: UploadedFile = File(None)
 ):
@@ -563,41 +569,38 @@ def create_user(
 
 
 # AI gens quiz
-@api.get(
-    "/Ai/GenerateQuiz/{thread_id}/{language}", response={200: dict, 404: NotFoundSchema}
-)
+@api.get("/Ai/GenerateQuiz/{thread_id}/{language}", response={200: dict, 401: dict, 404: dict, 500: dict})
 def generate_quiz(
     request, thread_id: int, language: str, authorization: str = Header(None)
 ):
-    try:
-        user = get_user_from_token(authorization)
-        if user is None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
-        generate_response = GenerateResponse()
+    try:
         thread = get_object_or_404(Thread, id_thread=thread_id)
 
-        try:
-            quiz_data = generate_response.create_quiz(thread.content, language)
-            if "error" in quiz_data:
-                return {"success": False, "message": quiz_data["error"]}
-            logger.info(
-                f"Generated quiz for thread {thread.id_thread} in language {language}"
-            )
-            return {"success": True, "data": quiz_data}
-        except Exception as e:
-            logger.error(f"Failed to generate quiz: {str(e)}")
-            return {"error": str(e)}
+        generate_response = GenerateResponse()
+        quiz_data = generate_response.create_quiz(thread.content, language)
+
+        if "error" in quiz_data:
+            logger.warning(f"Failed to generate quiz for thread {thread_id} in language {language}: {quiz_data['error']}")
+            return 400, {"success": False, "message": quiz_data["error"]}
+
+        logger.info(f"Generated quiz for thread {thread_id} in language {language} by user {user.id}")
+        return 200, {"success": True, "data": quiz_data}
+
+    except Http404:
+        logger.warning(f"Thread ID {thread_id} not found for user {user.id}")
+        return 404, {"success": False, "message": "Thread not found"}
+
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while generating quiz for thread ID {thread_id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # AI correcting Questions and answers
-@api.post(
-    "/Ai/CheckQuestions/{thread_id}/{language}",
-    response={200: dict, 404: NotFoundSchema},
-)
+@api.post("/Ai/CheckQuestions/{thread_id}/{language}",response={200: dict, 404: NotFoundSchema})
 def check_answers(
     request,
     thread_id: int,
@@ -698,32 +701,29 @@ def gen_random_top(request, thread_id, language, authorization: str = Header(Non
 
 
 # AI chosing prefs for you
-@api.post("/Ai/WeightPrefs", response={200: dict, 201: dict, 404: NotFoundSchema})
+@api.post("/Ai/WeightPrefs", response={200: dict, 201: dict, 400: dict, 401: dict, 500: dict})
 def weight_user_prefs(
     request, payload: UserPrefsResponse, authorization: str = Header(None)
 ):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
+    logger.info(f"User {user.id} is weighting preferences")
+
+    chosen_prefs = payload.prefs
+    UserPreferences.objects.filter(user=user).delete()
+
     try:
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
-
         generate_response = GenerateResponse()
-        logger.info("Weighting user preferences")
-
-        chosen_prefs = payload.prefs
-
-        UserPreferences.objects.filter(user=user).delete()
-
         user_pref_response = generate_response.weight_userPrefs(chosen_prefs)
 
         if isinstance(user_pref_response, str):
             try:
                 user_pref_response = json.loads(user_pref_response)
             except json.JSONDecodeError:
-                return {
-                    "success": False,
-                    "message": "Invalid JSON response from weight_userPrefs",
-                }
+                logger.error("Invalid JSON response from weight_userPrefs")
+                return 400, {"success": False, "message": "Invalid JSON response from weight_userPrefs"}
 
         saved_prefs = []
         for pref in user_pref_response.get("preferences", []):
@@ -738,79 +738,95 @@ def weight_user_prefs(
                 {"preference": user_pref.preference, "weight": user_pref.weight}
             )
 
-        return {"success": True, "preferences": saved_prefs}
+        return 201, {"success": True, "preferences": saved_prefs}
+
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Error occurred while weighting user preferences for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # Ai gens tags for text
-@api.post("/Ai/GenerateTags", response={200: dict, 201: dict, 404: NotFoundSchema})
+@api.post("/Ai/GenerateTags", response={200: dict, 201: dict, 400: dict, 401: dict, 500: dict})
 def generate_tags(request, payload: TagGivingSchema, authorization: str = Header(None)):
-    try:
-        user = get_user_from_token(authorization)
-        if user is None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
-        logger.info("Generating tags for text")
+    logger.info(f"User {user.id} is generating tags for provided content")
+
+    try:
         generate_response = GenerateResponse()
 
         tags_list = list(Tag.objects.values_list("name", flat=True))
+        logger.debug(f"Existing tags retrieved: {tags_list}")
 
         tags_response = generate_response.evaluate_text(tags_list, payload.content)
-        logger.info("Generated tags")
+        logger.info("Tags generated successfully")
 
-        return {"success": True, "preferences": tags_response}
+        return 201, {"success": True, "tags": tags_response}
+    
     except Exception as e:
-        logger.error(f"Error occurred while generating tags: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Error occurred while generating tags for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
-@api.post("/Ai/Summarize/{language}", response={200: dict, 404: NotFoundSchema})
+@api.post("/Ai/Summarize/{language}", response={200: dict, 400: dict, 401: dict, 500: dict})
 def summarize_ai(
-    request, language, payload: TagGivingSchema, authorization: str = Header(None)
+    request, language: str, payload: TagGivingSchema, authorization: str = Header(None)
 ):
-    try:
-        user = get_user_from_token(authorization)
-        if user is None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
-        logger.info("Summarizing text")
+    logger.info(f"User {user.id} is summarizing text in {language}")
+
+    try:
         generate_response = GenerateResponse()
         result = generate_response.summarize_text(
             payload.content, payload.titel, language
         )
+        
+        logger.info("Text summarized successfully")
+        return 200, {"success": True, "summary": result}
 
-        return 200, result
-
+    except ValueError as ve:
+        logger.error(f"Value error while summarizing: {ve}")
+        return 400, {"success": False, "message": "Invalid input data"}
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
-
-    summarieze_tags
+        logger.error(f"Error occurred while summarizing text for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # Funktion for data creation
-@api.post("/Ai/SummarizeAndTag/{language}", response={200: dict, 404: NotFoundSchema})
+@api.post("/Ai/SummarizeAndTag/{language}", response={200: dict, 400: dict, 401: dict, 500: dict})
 def summariezeandtag(
-    request, language, payload: TagGivingSchema, authorization: str = Header(None)
+    request, language: str, payload: TagGivingSchema, authorization: str = Header(None)
 ):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
+    logger.info(f"User {user.id} is summarizing and tagging text in {language}")
+
     try:
-        user = get_user_from_token(authorization)
-        if user is None:
-            return 404, {"success": False, "message": "User not found"}
         tags_list = list(Tag.objects.values_list("name", flat=True))
-        logger.info("Summarizing and tagging text")
+        
+        logger.info("Generating summary and tags for the provided content")
         generate_response = GenerateResponse()
+        
         result = generate_response.summarieze_tags(
             payload.content, payload.titel, language, tags_list
         )
 
-        return 200, result
+        logger.info("Successfully summarized and tagged the text")
+        return 200, {"success": True, "data": result}
 
+    except ValueError as ve:
+        logger.error(f"Value error occurred: {ve}")
+        return 400, {"success": False, "message": "Invalid input data"}
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error while summarizing and tagging for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # Preference management
@@ -853,34 +869,22 @@ def get_user_prefs(request, authorization: str = Header(None)):
 
 
 # get or fill tags
-@api.get("/Tags", response={200: dict, 201: str, 404: NotFoundSchema})
+@api.get("/Tags", response={200: dict, 401: dict, 500: dict})
 def filldatawithtags(request, authorization: str = Header(None)):
-    try:
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
+    logger.info(f"User {user.username} requested to fetch tags.")
+
+    try:
         tags_data = {
             "Tags": [
-                "Technology",
-                "Science",
-                "Music",
-                "Culture",
-                "Sports",
-                "Movies and Series",
-                "Education",
-                "Literature",
-                "History",
-                "Travel",
-                "Nature and Environment",
-                "Fashion",
-                "Culinary",
-                "Psychology",
-                "Finance",
-                "Space Exploration",
-                "Gaming",
-                "Creativity and Design",
-                "Art",
+                "Technology", "Science", "Music", "Culture", "Sports",
+                "Movies and Series", "Education", "Literature", "History",
+                "Travel", "Nature and Environment", "Fashion", "Culinary",
+                "Psychology", "Finance", "Space Exploration", "Gaming",
+                "Creativity and Design", "Art",
             ]
         }
 
@@ -889,11 +893,14 @@ def filldatawithtags(request, authorization: str = Header(None)):
 
         all_tags = Tag.objects.all()
 
-        return {"success": True, "tags": [tag.name for tag in all_tags]}
+        return {
+            "success": True,
+            "tags": [tag.name for tag in all_tags],
+        }
 
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Error occurred while fetching tags for user {user.username}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # delete one specific user
@@ -972,9 +979,7 @@ def report_content(request, payload: ReportPayload, authorization: str = Header(
 #         "comments": false
 #     }
 # }
-@api.post(
-    "/Search", response={200: dict, 201: SearchResponseSchema, 404: NotFoundSchema}
-)
+@api.post("/Search", response={200: dict, 201: SearchResponseSchema, 404: NotFoundSchema})
 def search_endpoint(
     request: str, payload: SearchRequest, authorization: str = Header(None)
 ):
