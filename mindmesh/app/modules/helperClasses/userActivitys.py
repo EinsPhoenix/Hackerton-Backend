@@ -3,8 +3,6 @@ import json
 import logging
 import os
 import time
-import hashlib
-from datetime import date
 import requests
 
 # Django-Bibliotheken
@@ -14,24 +12,17 @@ from django.db.models import Max
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-
-from django.core.files.images import get_image_dimensions
-from django.core.exceptions import ValidationError
-from django.conf import settings
-from django.core.files.storage import default_storage
+from django.db.models import Q
 
 # Google Auth-Bibliotheken
 from google.auth.transport import requests
 from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
-
 
 # Drittanbieter-Bibliotheken
-from ninja import NinjaAPI, Schema, UploadedFile, Form, File, Header
+from ninja import NinjaAPI,Header
 from ninja.errors import HttpError
 from typing import List
 from fastapi import HTTPException
-from django.db.models import Q
 
 
 # Lokale Module
@@ -44,16 +35,15 @@ from ...models import (
     Comment,
     UserPreferences,
     SharedQuestion,
-    ReportModel,
-    SearchRequests,
-    UploadedImage,
-    ImportantInformation,
-    Job,
-)
+    Job
 
+)
+from ..aiModule import GenerateResponse
+from .textByPrefs import TextsByPrefs
 from ...schema import (
     NotFoundSchema,
     CreateThreadSchema,
+    UpdateThreadSchema,
     CreateUserSchema,
     ThreadResponseSchema,
     CheckQuestionSchema,
@@ -63,20 +53,8 @@ from ...schema import (
     SharedQuestionResponseSchema,
     CreateSharedQuestionSchema,
     PasswordConfirmationSchema,
-    SearchRequest,
-    ReportPayload,
-    PublicUserResponse,
-    UserRequest,
-    ImageResponseSchema,
-    ImagePayload,
-    SearchResponseSchema,
-    CommentResponseSchema,
-    CommentCreateSchema,
-    GoogleVerificationSchema,
-    ImportandResponseSchema,
+    UserSchema
 )
-
-logger = logging.getLogger(__name__)
 
 import datetime
 import jwt
@@ -86,7 +64,7 @@ import string
 def get_user_from_token(authorization: str):
     try:
         token_user = extract_token(authorization)
-        token = UserProfile.objects.get(token=token_user)
+        token = UserProfile.objects.get(token=token_user)  # Correct usage
         return token.user
     except UserProfile.DoesNotExist:
         return None

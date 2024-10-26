@@ -32,8 +32,8 @@ class UpdateThreadSchema(Schema):
 
 
 class CreateUserSchema(BaseModel):
-    username: str = None
-    email: str = None
+    username: Optional[str] = None
+    email: Optional[str] = None
     password: str
 
 
