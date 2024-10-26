@@ -147,8 +147,12 @@ class MainTagFilter(InputFilter):
             return queryset.filter(main_tag__name__icontains=self.value())
         
 class SubtagsFilter(InputFilter):
-    # TODO - Add Subtags Filter
-    pass
+    title = 'Subtags'
+    parameter_name = 'subtags'
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(subtags__name__icontains=self.value())
 
 class ImageUrlFilter(InputFilter):
     title = 'Image Url'
@@ -224,22 +228,24 @@ class ScoreFilter(InputFilter):
             return queryset.filter(score__icontains=self.value())
         
 class ThreadsFilter(InputFilter):
-    #TODO Hier nochmal schauen ob das so passt
     title = 'Thread'
     parameter_name = 'thread'
 
     def queryset(self, request, queryset):
-        if self.value() is not None:
-            return queryset.filter(threads__icontains=self.value())
+        if self.value():
+            return queryset.filter(Threads__titel__icontains=self.value())
+        return queryset
         
 class QuizAbsolvedFilter(InputFilter):
-    #TODO Hier nochmal schauen ob das so passt
     title = 'Quiz Absolved'
     parameter_name = 'quiz_absolved'
 
     def queryset(self, request, queryset):
         if self.value() is not None:
-            return queryset.filter(quiz_absolved__icontains=self.value())
+            return queryset.filter( Q(QuizAbsolved__Question__icontains=self.value())|
+                                    Q(QuizAbsolved__AnswerFromUser__icontains=self.value())|
+                                    Q(QuizAbsolved__AiAnswer__icontains=self.value())
+                                   )
         
 class BioFilter(InputFilter):
     title = 'Bio'
@@ -267,6 +273,7 @@ class JobFilter(InputFilter):
         
 class SolvedThreadsFilter(InputFilter):
     #TODO Hier nochmal schauen ob das so passt
+    #TODO IST NAHEZU UNMÖGLICH wird gemacht wenn am Ende des Projekts noch Zeit ist
     title = 'Solved Threads'
     parameter_name = 'solvedThreads'
 
@@ -282,15 +289,14 @@ class ThreadFilter(InputFilter):
         if self.value() is not None:
             return queryset.filter(thread__titel__icontains=self.value())
         
-class ReactingFilter(InputFilter):
-    #TODO Hier muss auf jeden Fall auch nochmal geschaut werden
-    # wird vorraussichlich verworfen
-    title = 'Reacting'
-    parameter_name = 'reacting'
+class ReportedWhyFilter(InputFilter):
+    title = 'Reported Why'
+    parameter_name = 'reported_why'
 
     def queryset(self, request, queryset):
         if self.value() is not None:
-            return queryset.filter(reacting__icontains=self.value())
+            return queryset.filter(reported_why__icontains=self.value())
+        
         
 class UpvoatedThreadsFilter(InputFilter):
     title = 'Upvoted Threads'
@@ -357,13 +363,15 @@ class ReportedAtFilter(InputFilter):
             return queryset.filter(reported_at__icontains=self.value())
         
 class ContentTypeFilter(InputFilter):
-    #TODO hoffentlich funktioniert das muss geschaut werden
     title = 'Content Type'
     parameter_name = 'content_type'
 
     def queryset(self, request, queryset):
         if self.value() is not None:
-            return queryset.filter(content_type__model__icontains=self.value())
+            return queryset.filter(   
+                                    Q(content_type__model__icontains=self.value()) |
+                                    Q(content_type__app_label__icontains=self.value())
+                                   )
         
 class ObjectIDFilter(InputFilter):
     title = 'Object ID'
@@ -404,10 +412,61 @@ class searchResultFilter(InputFilter):
     def queryset(self, request, queryset):
         if self.value() is not None:
             return queryset.filter(search_result__icontains=self.value())
+        
+class UpvotedThreadsFilter(InputFilter):
+    title = 'Upvoted Threads'
+    parameter_name = 'upvotedThreads'
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(upvotedThreads__titel__icontains=self.value())
+        
+class DownvotedThreadsFilter(InputFilter):
+    title = 'Downvoted Threads'
+    parameter_name = 'downvotedThreads'
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(downvotedThreads__titel__icontains=self.value())
+        
+class UpvotedCommentsFilter(InputFilter):
+    title = 'Upvoted Comments'
+    parameter_name = 'upvotedComments'
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(upvotedComments__content__icontains=self.value())
+        
+class DownvotedCommentsFilter(InputFilter):
+    title = 'Downvoted Comments'
+    parameter_name = 'downvotedComments'
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(downvotedComments__content__icontains=self.value())
+        
+class UpvotedSharedQuestionsFilter(InputFilter):
+    title = 'Upvoted Shared Questions'
+    parameter_name = 'upvotedSharedQuestions'
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(upvotedSharedQuestions__content__icontains=self.value()) 
+
+class DownvotedSharedQuestionsFilter(InputFilter):
+    title = 'Downvoted Shared Questions'
+    parameter_name = 'downvotedSharedQuestions'
+
+    def queryset(self, request, queryset):
+        if self.value() is not None:
+            return queryset.filter(downvotedSharedQuestions__content__icontains=self.value())
+  
 
 
 
-'''Custom Filter Section End Here'''# Register your models here.
+'''Custom Filter Section Ends Here'''
+
+# Register your models here.
 
 @admin.action(description='Tags für alle Benutzer hinzufügen')
 def fill_data_with_tags(modeladmin, request, queryset):
@@ -459,7 +518,7 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display.append('image_url_str')
     list_display.append('solvedThreads_str')
     search_fields = ('id', 'user__email', 'bio', 'job__name')
-    list_filter = [UserFilter, ImageUrlFilter, BioFilter, TokenFilter, JobFilter, SolvedThreadsFilter]
+    list_filter = [UserFilter, ImageUrlFilter, BioFilter, TokenFilter, JobFilter]
     items_per_page = 25
 
     actions = [delete_all_users]
@@ -480,7 +539,7 @@ class ThreadAdmin(admin.ModelAdmin):
     list_display.append('subtags_str')
     list_display.append('image_url_str')
     list_display.append('created_by_str')
-    list_filter = [TitelFilter, ContentFilter, ContentSummaryFilter, MainTagFilter, ImageUrlFilter, CreatedByFilter]
+    list_filter = [TitelFilter, ContentFilter, ContentSummaryFilter, MainTagFilter, ImageUrlFilter, CreatedByFilter, SubtagsFilter]
     search_fields = ('titel', 'content', 'created_by__username', 'id_thread')
     items_per_page = 25
 
@@ -515,7 +574,7 @@ class UserActivityAdmin(admin.ModelAdmin):
     list_display.append('upvotedSharedQuestions_str')
     list_display.append('downvotedSharedQuestions_str')
     search_fields = ('user__username', 'id')
-    list_filter = [UserFilter] #TODO andere Filter müssen noch überarbeitet werden
+    list_filter = [UserFilter, UpvotedThreadsFilter, DownvotedThreadsFilter, UpvotedCommentsFilter, DownvotedCommentsFilter, UpvotedSharedQuestionsFilter, DownvotedSharedQuestionsFilter]
     items_per_page = 25
 
 @admin.register(ReportModel)
@@ -525,7 +584,7 @@ class ReportModelAdmin(admin.ModelAdmin):
     list_display.append('reported_object_str')
     # list_display.append('content_type_str')
     search_fields = ('reported_by__username', 'reported_why', 'reported_object', 'report_id', 'id')
-    list_filter = [ReportedByFilter, ObjectIDFilter, ReportedTypeFilter ] #TODO wir brauchen einen ReportedWhyFilter
+    list_filter = [ReportedByFilter, ObjectIDFilter, ReportedTypeFilter, ReportedWhyFilter, ContentTypeFilter ]
     items_per_page = 25
 
 @admin.register(SearchRequests)
@@ -580,6 +639,5 @@ class SolvedThreadsAdmin(admin.ModelAdmin):
     list_display.append('threads_str')
     list_display.append('quiz_absolved_str')
     search_fields = ('id', 'threads', 'quiz_absolved')
-    #TODO hier müssen die Filter noch gefixed werden
     list_filter = [ThreadsFilter, QuizAbsolvedFilter]
     items_per_page = 25

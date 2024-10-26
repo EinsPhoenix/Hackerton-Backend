@@ -235,15 +235,17 @@ class Job(models.Model):
     ImportantInformations_str.admin_order_field = 'ImportantInformations'
 
 class QuizAbsolved(models.Model):
-    # TODO Es muss noch entschieden werden welche String repräsentation wir hier machen wollen
     Question = models.TextField(null=False)
     AnswerFromUser = models.TextField(blank=True, null=False)
     AiAnswer = models.TextField(blank=True, null=False)
     score = models.IntegerField(default=0)
+
+    def __str__(self):
+        return f"{self.Question[:50]} | {self.AnswerFromUser[:50]} | {self.AiAnswer[:50]}"
     
 
 class SolvedThreads(models.Model):
-    #TODO Es muss noch entschieden werden welche String repräsentation wir hier machen wollen
+    #TODO hier nahezu keine String repräsentation möglich 
     Threads = models.ManyToManyField(Thread, blank=True, null=False)
     QuizAbsolved = models.ManyToManyField(QuizAbsolved, blank=True, null=False)
     Created_At = models.DateTimeField(auto_now_add=True)
@@ -266,7 +268,7 @@ class SolvedThreads(models.Model):
 
         for quiz in quiz_absolved:
             link = reverse("admin:%s_%s_change" % (quiz._meta.app_label, quiz._meta.model_name), args=[quiz.pk])
-            returnString += f'<a href="{link}">{quiz.Question}</a><br>'
+            returnString += f'<a href="{link}">{str(quiz)}</a><br>'
         return mark_safe(returnString)
     
     threads_str.short_description = 'Threads'
@@ -425,7 +427,6 @@ class SharedQuestion(models.Model):
     created_by_str.admin_order_field = 'created_by'
     
 class UserActivity(models.Model):
-    #TODO Es muss noch entschieden werden welche String repräsentation wir hier machen wollen
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
     upvotedThreads = models.ManyToManyField(Thread, related_name='threadsUpvoted')
     downvotedThreads = models.ManyToManyField(Thread, related_name='threadsDownvoted')
