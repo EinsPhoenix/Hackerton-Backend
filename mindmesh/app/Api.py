@@ -127,7 +127,7 @@ def get_texts_for_user(request, authorization: str = Header(None)):
         return 404, {"success": False, "message": "Threads not found for the user."}
     except Exception as e:
         logger.error(f"Error occurred while fetching threads for user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred."}
+        return 500, {"success": False, "message": "An unexpected error occurred while fetching threads for user"}
 
 
 # specific text by id
@@ -148,7 +148,7 @@ def get_texts_for_user(request, thread_id: int, authorization: str = Header(None
         return 404, {"success": False, "message": "Thread not found"}
     except Exception as e:
         logger.error(f"Unexpected error occurred while fetching thread {thread_id} for user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while fetching thread for user"}
 
 
 # get all texts with a specific tag
@@ -175,7 +175,7 @@ def get_texts_by_tag(request, tag_name: str, authorization: str = Header(None)):
         return 404, {"success": False, "message": f"Tag '{tag_name}' not found"}
     except Exception as e:
         logger.error(f"Unexpected error occurred while fetching threads by tag '{tag_name}' for user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while fetching threads by tag for user"}
 
 
 # new text add
@@ -223,7 +223,7 @@ def add_new_text(
         return 404, {"success": False, "message": "Tag not found"}
     except Exception as e:
         logger.error(f"Unexpected error occurred while adding new text for user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while adding new text for user"}
 
 # Get Image for profile or thread
 @api.post("/GetImages", response={201: ImageResponseSchema, 401: dict, 400: dict, 404: NotFoundSchema, 500: dict})
@@ -266,7 +266,7 @@ def get_image(request, payload: ImagePayload, authorization: str = Header(None))
         return 400, {"success": False, "message": str(e)}
     except Exception as e:
         logger.error(f"Unexpected error fetching image for user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while fetching image for user"}
 
 # Update a specific text
 @api.post("/TextUpdate/{thread_id}", response={201: ThreadResponseSchema, 401: dict, 403: dict, 400: dict, 404: dict, 500: dict})
@@ -321,7 +321,7 @@ def update_text(
         return 404, {"success": False, "message": str(e)}
     except Exception as e:
         logger.error(f"Unexpected error occurred while updating thread {thread_id} for user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while updating thread for user"}
 
 
 #get important information for a job group
@@ -361,7 +361,7 @@ def get_important_by_job(request, job_group: str, authorization: str = Header(No
         return 404, {"success": False, "message": str(e)}
     except Exception as e:
         logger.error(f"Unexpected error occurred while fetching important information for job group {job_group} by user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while fetching important information for job group by user"}
 
 
 # upvote everything
@@ -391,12 +391,12 @@ def upvote_text(
             user_activity.save()
         except Exception as e:
             logger.error(f"Error updating vote: {str(e)}")
-            return 404, {"success": False, "message": str(e)}
+            return 404, {"success": False, "message": "Updating vote failed"}
 
         return 201, {"success": True, "message": f"{payload.upvoteType} successfully"}
     except Exception as e:
         logger.error(f"Error upvoting: {str(e)}")
-        return 404, {"success": False, "message": str(e)}
+        return 404, {"success": False, "message": "An error occurred while upvoting"}
 
 
 # delete text
@@ -423,7 +423,7 @@ def delete_text(request, thread_id: int, authorization: str = Header(None)):
 
     except Exception as e:
         logger.error(f"Unexpected error occurred while deleting thread {thread_id} by user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while deleting thread by user"}
 
 
 # Share, delet and get Questions
@@ -449,7 +449,7 @@ def share_question(
 
     except Exception as e:
         logger.error(f"Unexpected error occurred while sharing question for user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while sharing question for user"}
 
 # Get shared questions for the user
 @api.get("/QuestionsShared", response={200: List[SharedQuestionResponseSchema], 401: dict, 404: dict, 500: dict})
@@ -472,7 +472,7 @@ def get_shared_questions_by_thread(request, authorization: str = Header(None)):
 
     except Exception as e:
         logger.error(f"Unexpected error occurred while fetching shared questions for user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while fetching shared questions for user"}
 
 
 # get all questions based on thread id
@@ -497,7 +497,7 @@ def get_shared_questions_by_thread(
 
     except Exception as e:
         logger.error(f"Unexpected error occurred while fetching shared questions for thread ID {id_thread}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while fetching shared questions"}
 
 
 # delete shared question
@@ -520,11 +520,11 @@ def delete_shared_question(
 
     except HttpError as e:
         logger.error(f"HttpError occurred while deleting shared question ID {question_id} for user {user.id}: {str(e)}")
-        return e.status_code, {"success": False, "message": str(e)}
+        return e.status_code, {"success": False, "message": "An error occurred while deleting shared question"}
 
     except Exception as e:
         logger.error(f"Unexpected error occurred while deleting shared question ID {question_id} for user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while deleting shared question id for user"}
 
 
 # Token veryfizierung
@@ -537,7 +537,7 @@ def verify_token(request, payload: GoogleVerificationSchema):
 
     except Exception as e:
         logger.error(f"Error occurred while verifying token: {e}")
-        return 404, {"success": False, "message": str(e)}
+        return 404, {"success": False, "message": "An error occurred while verifying token"}
 
 
 @api.post("/CreateOrLoginUserWithMail", response={201: dict, 200: dict, 404: NotFoundSchema})
@@ -558,11 +558,11 @@ def create_user(
         else:
             return 404, {
                 "success": False,
-                "message": "Benutzername, E-Mail oder Passwort sind ungültig",
+                "message": "Invalid credentials",
             }
 
     except Exception as e:
-        return 404, {"success": False, "message": str(e)}
+        return 404, {"success": False, "message": "An error occurred while creating/login user"}
 
 
 ### AI API Start###
@@ -596,7 +596,7 @@ def generate_quiz(
 
     except Exception as e:
         logger.error(f"Unexpected error occurred while generating quiz for thread ID {thread_id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while generating quiz for thread id"}
 
 
 # AI correcting Questions and answers
@@ -657,7 +657,7 @@ def check_answers(
         
     except Exception as e:
         logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        return 404, {"success": False, "message": "An error occurred while fetching threads"}
 
 
 
@@ -697,7 +697,7 @@ def gen_random_top(request, thread_id, language, authorization: str = Header(Non
         return {"success": True, "data": top_quiz_response}
     except Exception as e:
         logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        return 404, {"success": False, "message": "An error occurred while fetching threads"}
 
 
 # AI chosing prefs for you
@@ -742,7 +742,7 @@ def weight_user_prefs(
 
     except Exception as e:
         logger.error(f"Error occurred while weighting user preferences for user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while weighting user preferences for user"}
 
 
 # Ai gens tags for text
@@ -767,7 +767,7 @@ def generate_tags(request, payload: TagGivingSchema, authorization: str = Header
     
     except Exception as e:
         logger.error(f"Error occurred while generating tags for user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while generating tags for user"}
 
 
 @api.post("/Ai/Summarize/{language}", response={200: dict, 400: dict, 401: dict, 500: dict})
@@ -794,7 +794,7 @@ def summarize_ai(
         return 400, {"success": False, "message": "Invalid input data"}
     except Exception as e:
         logger.error(f"Error occurred while summarizing text for user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while summarizing text for user"}
 
 
 # Funktion for data creation
@@ -826,7 +826,7 @@ def summariezeandtag(
         return 400, {"success": False, "message": "Invalid input data"}
     except Exception as e:
         logger.error(f"Unexpected error while summarizing and tagging for user {user.id}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while summarizing and tagging for user"}
 
 
 # Preference management
@@ -845,7 +845,7 @@ def delete_user_prefs(request, authorization: str = Header(None)):
         }
     except Exception as e:
         logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        return 404, {"success": False, "message": "An error occurred while fetching threads"}
 
 
 # get or show preferences
@@ -865,7 +865,7 @@ def get_user_prefs(request, authorization: str = Header(None)):
 
         return 201, {"success": True, "preferences": prefs_list}
     except Exception as e:
-        return 404, {"success": False, "message": str(e)}
+        return 404, {"success": False, "message": "An error occurred while getting or show preferences"}
 
 
 # get or fill tags
@@ -900,7 +900,7 @@ def filldatawithtags(request, authorization: str = Header(None)):
 
     except Exception as e:
         logger.error(f"Error occurred while fetching tags for user {user.username}: {e}")
-        return 500, {"success": False, "message": "An unexpected error occurred"}
+        return 500, {"success": False, "message": "An unexpected error occurred while fetching tags for user"}
 
 
 # delete one specific user
@@ -940,7 +940,7 @@ def delete_user(
 
     except Exception as e:
         logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        return 404, {"success": False, "message": "An error occurred while fetching threads from user"}
 
 
 @api.post("/Report", response={200: dict, 201: str, 404: NotFoundSchema})
@@ -953,7 +953,7 @@ def report_content(request, payload: ReportPayload, authorization: str = Header(
         return report_create.create_report(user, payload)
     except Exception as e:
         logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        return 404, {"success": False, "message": "An error occurred while fetching threads from report"}
 
 
 # TODO: COMMENTSECTION
@@ -1006,7 +1006,7 @@ def search_endpoint(
             "search_id": search_request.search_id,
         }
     except Exception as e:
-        return 404, {"message": f"Failure: {str(e)}", "success": False}
+        return 404, {"success": False, "message": "An error occurred while searching user"}
 
 
 @api.post(
@@ -1146,7 +1146,7 @@ def get_user_from_username(
         return response_data
 
     except Exception as e:
-        return 404, {"message": f"Failure: {str(e)}", "success": False}
+        return 404, {"success": False, "message": "An error occurred while trying to find user"}
 
 
 class UserDetails(Schema):
@@ -1198,7 +1198,7 @@ def add_comment(
             "upvotes": comment.upvotes,
         }
     except Exception as e:
-        return 404, {"message": f"Failure: {str(e)}", "success": False}
+        return 404, {"success": False, "message": f"An error occurred while trying to add a comment"}
 
 
 @api.get(
@@ -1226,7 +1226,7 @@ def get_comments(request, thread_id: int, authorization: str = Header(None)):
             for comment in comments
         ]
     except Exception as e:
-        return 404, {"message": f"Failure: {str(e)}", "success": False}
+        return 404, {"success": False, "message": "An error occurred while trying to get comments"}
 
 
 @api.put(
@@ -1257,7 +1257,7 @@ def edit_comment(
             "upvotes": comment.upvotes,
         }
     except Exception as e:
-        return 404, {"message": f"Failure: {str(e)}", "success": False}
+        return 404, {"success": False, "message": "An error occurred while trying to edit comment"}
 
 
 @api.delete("/ManageComments/{comment_id}", response={201: dict, 404: NotFoundSchema})
@@ -1272,7 +1272,7 @@ def delete_comment(request, comment_id: int, authorization: str = Header(None)):
         comment.delete()
         return 201, {"success": True, "message": "Comment deleted successfully"}
     except Exception as e:
-        return 404, {"message": f"Failure: {str(e)}", "success": False}
+        return 404, {"success": False, "message": "An error occurred while trying to delete comment"}
 
 
 
@@ -1286,7 +1286,7 @@ def click_thread(request, thread_id: int, authorization: str = Header(None)):
         return handle_thread_clicked(thread_id, user, 1.3)
     
     except Exception as e:
-        return 404, {"message": f"Failure: {str(e)}", "success": False}
+        return 404, {"success": False, "message": "An error occurred while trying to click thread"}
     
 @api.get("/Job/List", response={200: JobListResponse, 401: dict, 404: NotFoundSchema})
 def job_list(request, authorization: str = Header(None)):
