@@ -107,6 +107,12 @@ class ImportantInformation(models.Model):
 class Job(models.Model):
     name = models.TextField()
     ImportantInformations = models.ManyToManyField(ImportantInformation, blank=True)
+
+class QuizAbsolved(models.Model):
+    Question = models.TextField(null=False)
+    AnswerFromUser = models.TextField(blank=True, null=False)
+    AiAnswer = models.TextField(blank=True, null=False)
+    score = models.IntegerField(default=0)
     
 
 class SolvedThreads(models.Model):
@@ -212,12 +218,6 @@ def delete_important_info_from_job(sender, instance, **kwargs):
     
     instance.ImportantInformations.clear() 
     ImportantInformation.objects.filter(id__in=instance.ImportantInformations.values()).delete()
-
-class QuizAbsolved(models.Model):
-    Question = models.TextField(null=False)
-    AnswerFromUser = models.TextField(blank=True, null=False)
-    AiAnswer = models.TextField(blank=True, null=False)
-    score = models.IntegerField(default=0)
 
 
 
