@@ -1,0 +1,94 @@
+{
+    "usage_API": {
+        "AIzaSyA9sOb3bRObCa1t1yvJtEVN959Gk3U680Q": {
+            "anfragen": [
+                {
+                    "prompt_token_count": 141,
+                    "candidates_token_count": 99,
+                    "total_token_count": 240
+                },
+                {
+                    "prompt_token_count": 304,
+                    "candidates_token_count": 212,
+                    "total_token_count": 516
+                }
+            ],
+            "errors": 0
+        },
+        "AIzaSyDbjXh5rjCrOjxTG8Wp6Mqzlihly7hEElw": {
+            "anfragen": [
+                {
+                    "prompt_token_count": 141,
+                    "candidates_token_count": 89,
+                    "total_token_count": 230
+                },
+                {
+                    "prompt_token_count": 315,
+                    "candidates_token_count": 111,
+                    "total_token_count": 426
+                },
+                {
+                    "prompt_token_count": 304,
+                    "candidates_token_count": 123,
+                    "total_token_count": 427
+                }
+            ],
+            "errors": 0
+        },
+        "AIzaSyDOJ5l3FzhZlsS0YOYxmQatPUcnDgCZi-I": {
+            "anfragen": [
+                {
+                    "prompt_token_count": 141,
+                    "candidates_token_count": 119,
+                    "total_token_count": 260
+                },
+                {
+                    "prompt_token_count": 100,
+                    "candidates_token_count": 36,
+                    "total_token_count": 136
+                },
+                {
+                    "prompt_token_count": 278,
+                    "candidates_token_count": 131,
+                    "total_token_count": 409
+                }
+            ],
+            "errors": 0
+        },
+        "AIzaSyDbeJNYg0wyYQjtcmFjSeml26VDbPwaZ-o": {
+            "anfragen": [
+                {
+                    "prompt_token_count": 141,
+                    "candidates_token_count": 108,
+                    "total_token_count": 249
+                },
+                {
+                    "prompt_token_count": 243,
+                    "candidates_token_count": 87,
+                    "total_token_count": 330
+                },
+                {
+                    "prompt_token_count": 278,
+                    "candidates_token_count": 124,
+                    "total_token_count": 402
+                }
+            ],
+            "errors": 0
+        },
+        "AIzaSyBYjabiJRjEJiFmHBDlR3KP6WZ0xSmJUQw": {
+            "anfragen": [
+                {
+                    "prompt_token_count": 243,
+                    "candidates_token_count": 87,
+                    "total_token_count": 330
+                },
+                {
+                    "prompt_token_count": 100,
+                    "candidates_token_count": 37,
+                    "total_token_count": 137
+                }
+            ],
+            "errors": 0
+        }
+    }
+}

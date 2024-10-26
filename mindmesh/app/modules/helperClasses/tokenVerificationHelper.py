@@ -1,85 +1,33 @@
 # Standardbibliotheken
-import json
 import logging
 import os
-import time
-import hashlib
-from datetime import date
 import requests
 
 # Django-Bibliotheken
-from django.contrib.auth.hashers import check_password, make_password
-from django.db import transaction
-from django.db.models import Max
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
+from django.contrib.auth.hashers import make_password
 
-from django.core.files.images import get_image_dimensions
-from django.core.exceptions import ValidationError
-from django.conf import settings
-from django.core.files.storage import default_storage
 
 # Google Auth-Bibliotheken
-from google.auth.transport import requests as google_requests
+from google.auth.transport import requests
 from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
 
 # Drittanbieter-Bibliotheken
-from ninja import NinjaAPI,Schema, UploadedFile, Form, File, Header
-from ninja.errors import HttpError
-from typing import List
 from fastapi import HTTPException
-from django.db.models import Q
 
 # Lokale Module
 from ...models import (
-    Thread,
+    
     User,
-    Tag,
     UserProfile,
-    UserActivity,
-    Comment,
     UserPreferences,
-    SharedQuestion,
-    ReportModel,
-    SearchRequests,
-    UploadedImage
+)
+from ..helperClasses.userActivitys import (
+    create_custom_token,
 )
 
-from ..AiModule import GenerateResponse
-from ..HelperClasses.ThreadsHelper import ThreadHelper
-from ..HelperClasses.TextsByPrefs import TextsByPrefs
-from ..HelperClasses.ShareQuestionHelper import ShareQuestionHelper
-from ..HelperClasses.UserActivitys import get_user_from_token,create_custom_token, perform_search
-from ..HelperClasses.Report import ReportReciever
-from ..HelperClasses.UserPrefsUpvotes import handle_thread_vote, handle_comment_vote, handle_shared_vote
-from ..HelperClasses.UserProfileLogin import handle_existing_user, create_new_user
-from ...schema import (
-    NotFoundSchema,
-    CreateThreadSchema,
-    UpdateThreadSchema,
-    CreateUserSchema,
-    ThreadResponseSchema,
-    CheckQuestionSchema,
-    TagGivingSchema,
-    UserPrefsResponse,
-    UpvoteTypeResponse,
-    SharedQuestionResponseSchema,
-    CreateSharedQuestionSchema,
-    PasswordConfirmationSchema,
-    UserSchema,
-    SearchRequest,
-    ReportPayload,
-    PublicUserResponse,
-    UserRequest,
-    ImageResponseSchema,
-    ImagePayload,
-    SearchResponseSchema,
-    CommentResponseSchema,
-    CommentCreateSchema,
-    MessageResponseSchema,
-    GoogleVerificationSchema
-)
+
+logger = logging.getLogger(__name__)
 
 logger = logging.getLogger(__name__)
 

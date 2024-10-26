@@ -32,8 +32,8 @@ class UpdateThreadSchema(Schema):
 
 
 class CreateUserSchema(BaseModel):
-    username: str = None
-    email: str = None
+    username: Optional[str] = None
+    email: Optional[str] = None
     password: str
 
 
@@ -223,3 +223,10 @@ class GoogleVerificationSchema(Schema):
 class CommentCreateSchema(Schema):
     content: str
 
+class JobListResponse(Schema):
+    jobs: list[str]  
+
+
+class BioAndJobSchema(Schema):
+    jobname: Optional[str] = None 
+    bio: Optional[str] = None      

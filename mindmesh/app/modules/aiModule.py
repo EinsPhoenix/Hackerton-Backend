@@ -2,7 +2,6 @@ import google.generativeai as genai
 import json
 import logging
 import re
-from django.http import JsonResponse
 from dotenv import load_dotenv
 import os
 import random

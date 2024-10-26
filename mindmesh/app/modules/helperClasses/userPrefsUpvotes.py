@@ -1,56 +1,14 @@
 # Standardbibliotheken
-import json
 import logging
-import os
-import time
-
-# Django-Bibliotheken
-from django.contrib.auth.hashers import check_password, make_password
-from django.db import transaction
-from django.db.models import Max
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
-
-# Google Auth-Bibliotheken
-from google.auth.transport import requests
-from google.oauth2 import id_token
-
-# Drittanbieter-Bibliotheken
-from ninja import NinjaAPI
-from ninja.errors import HttpError
-from typing import List
-from fastapi import HTTPException
 
 # Lokale Module
 from ...models import (
-    Thread,
-    User,
-    Tag,
-    UserProfile,
-    UserActivity,
-    Comment,
-    UserPreferences,
-    SharedQuestion,
-    
+    UserPreferences, 
 )
-from ..AiModule import GenerateResponse
-from .TextsByPrefs import TextsByPrefs
-from ...schema import (
-    NotFoundSchema,
-    CreateThreadSchema,
-    UpdateThreadSchema,
-    CreateUserSchema,
-    ThreadResponseSchema,
-    CheckQuestionSchema,
-    TagGivingSchema,
-    UserPrefsResponse,
-    UpvoteTypeResponse,
-    SharedQuestionResponseSchema,
-    CreateSharedQuestionSchema,
-    PasswordConfirmationSchema,
-    UserSchema
-)
+
+
+
+logger = logging.getLogger(__name__)
 
 def update_preferences(user_activity, thread, delta):
     main_tag = thread.main_tag
@@ -61,7 +19,7 @@ def update_preferences(user_activity, thread, delta):
         print(main_tag.name)
         return
 
-    if preference.weight < 100 and preference.weight > 0.05:
+    if preference.weight < 100 and preference.weight > 0.1:
         preference.weight = min(100, preference.weight + delta)  
         preference.save()
 
@@ -72,9 +30,32 @@ def update_preferences(user_activity, thread, delta):
             return
         
         if preference.weight < 100 and preference.weight > 0.01:
-            preference.weight = min(100, preference.weight + delta * 0.01)  
+            preference.weight = min(100, preference.weight + delta * 0.05)  
             preference.save()
 
+def handle_thread_clicked(thread, user, delta):
+    try:
+        main_tag = thread.main_tag
+        preference = UserPreferences.objects.get(user=user, preference=main_tag.name)
+    except UserPreferences.DoesNotExist:
+        return 404, {"succes":False, "message":"Userpreferences do not exist"}
+    
+    if preference.weight < 100 and preference.weight > 0.05:
+        preference.weight = min(100, preference.weight )  
+        preference.save()
+
+    for subtag in thread.subtags.all():
+        try:
+            preference = UserPreferences.objects.get(user, preference=subtag.name)
+        except UserPreferences.DoesNotExist:
+            return 404, {"succes":False, "message":"Userpreferences do not exist"}
+        
+        if preference.weight < 100 and preference.weight > 0.01:
+            preference.weight = min(100, preference.weight + delta * 0.01)  
+            preference.save()
+            
+        return 201, {"succes":True, "message": "Weight was updated successfully"}
+    
 
 def handle_thread_vote(user_activity, thread, upvote_type):
     if upvote_type == "upvote":

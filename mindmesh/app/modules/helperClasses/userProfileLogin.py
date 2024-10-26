@@ -1,71 +1,33 @@
 # Standardbibliotheken
-import json
 import logging
-import os
-import time
 import hashlib
+from datetime import date
+import requests
 
 # Django-Bibliotheken
-from django.contrib.auth.hashers import check_password, make_password
-from django.db import transaction
-from django.db.models import Max
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from django.utils import timezone
-from django.db.models import Q
-from django.contrib.contenttypes.models import ContentType
-from .UserActivitys import get_user_from_token,create_custom_token, perform_search
-
-# Google Auth-Bibliotheken
-from google.auth.transport import requests
-from google.oauth2 import id_token
-
-import os
-import requests
 from django.contrib.auth.hashers import make_password
-
-# Drittanbieter-Bibliotheken
-from ninja import NinjaAPI, UploadedFile
-from ninja.errors import HttpError
-from typing import List
-from fastapi import HTTPException
+from django.utils import timezone
 
 from django.core.files.images import get_image_dimensions
 from django.core.exceptions import ValidationError
-from django.conf import settings
-from django.core.files.storage import default_storage
+
+# Drittanbieter-Bibliotheken
+from ninja import UploadedFile
+from ninja.errors import HttpError
 
 # Lokale Module
 from ...models import (
-    Thread,
     User,
-    Tag,
     UserProfile,
-    UserActivity,
-    Comment,
     UserPreferences,
-    SharedQuestion,
-    ReportModel,
-    UploadedImage
+    UploadedImage,
+    
 )
-from ..AiModule import GenerateResponse
-from .TextsByPrefs import TextsByPrefs
-from ...schema import (
-    NotFoundSchema,
-    CreateThreadSchema,
-    UpdateThreadSchema,
-    CreateUserSchema,
-    ThreadResponseSchema,
-    CheckQuestionSchema,
-    TagGivingSchema,
-    UserPrefsResponse,
-    UpvoteTypeResponse,
-    SharedQuestionResponseSchema,
-    CreateSharedQuestionSchema,
-    PasswordConfirmationSchema,
-    UserSchema,
-    ReportPayload
+
+from ..helperClasses.userActivitys import (
+    create_custom_token,
 )
+
 
 logger = logging.getLogger(__name__)
 def handle_existing_user(user: User, file: UploadedFile):
