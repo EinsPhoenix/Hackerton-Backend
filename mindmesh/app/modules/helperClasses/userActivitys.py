@@ -118,7 +118,7 @@ def perform_search(search_term, filters, request):
             Q(subtags__name__icontains=search_term) |
             Q(created_by__username__icontains=search_term)
         ).order_by('-created_at')
-
+        default_image_url = request.build_absolute_uri('/images/WhatsApp_Bild_2024-10-16_um_20.51.53_8052ce33.jpg')
         unique_threads = {thread.id_thread: {
             "id_thread": thread.id_thread,
             "titel": thread.titel,
@@ -129,7 +129,7 @@ def perform_search(search_term, filters, request):
             "main_tag": thread.main_tag.name if thread.main_tag else None,
             "sub_tags": [tag.name for tag in thread.subtags.all()],
             "upvotes": thread.upvotes,
-            "image_url": request.build_absolute_uri(thread.image_url.image.url)
+            "image_url": request.build_absolute_uri(thread.image_url.image.url) if thread.image_url else default_image_url,
         } for thread in threads}
 
         search_results["threadsmatching"] = list(unique_threads.values())

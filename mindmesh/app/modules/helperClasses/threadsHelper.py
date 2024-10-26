@@ -82,6 +82,7 @@ class ThreadHelper():
     
     @staticmethod
     def format_thread_response(thread, request):
+        default_image_url = request.build_absolute_uri('/images/WhatsApp_Bild_2024-10-16_um_20.51.53_8052ce33.jpg')
         return ThreadResponseSchema(
             success=True,
             id_thread=thread.id_thread,
@@ -92,7 +93,7 @@ class ThreadHelper():
             subtags=[tag.name for tag in thread.subtags.all()],
             created_at=thread.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             upvotes=thread.upvotes,
-            image_url=request.build_absolute_uri(thread.image_url.image.url),
+            image_url = request.build_absolute_uri(thread.image_url.image.url) if thread.image_url else default_image_url,
             created_by=thread.created_by.username
         )
 
