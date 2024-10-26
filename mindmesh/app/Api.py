@@ -107,25 +107,25 @@ logger = logging.getLogger(__name__)
 
 
 # texts based on prefs
-@api.get("/Texts", response={201: List[ThreadResponseSchema], 404: NotFoundSchema})
+@api.get("/Texts", response={200: List[ThreadResponseSchema], 401: dict, 404: NotFoundSchema, 500: dict})
 def get_texts_for_user(request, authorization: str = Header(None)):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
     try:
-
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
         user_pref_getter = TextsByPrefs(user)
-        print(1)
         threads = user_pref_getter.get_weighted_threads(30)
-        print(2)
 
-        return 201, [
+        return 200, [
             ThreadHelper.format_thread_response(thread, request) for thread in threads
         ]
-
+        
+    except Http404:
+        return 404, {"success": False, "message": "Threads not found for the user."}
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Error occurred while fetching threads for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred."}
 
 
 # specific text by id
