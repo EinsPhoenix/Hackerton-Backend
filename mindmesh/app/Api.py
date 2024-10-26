@@ -323,21 +323,17 @@ def update_text(
 
 
 #get important information for a job group
-@api.get(
-    "/ImportantInformation/{job_group}",
-    response={201: List[ImportandResponseSchema], 404: NotFoundSchema},
-)
-def get_importend_by_job(request, job_group, authorization: str = Header(None)):
-    try:
-        user = get_user_from_token(authorization)
-        if user is None:
-            return 404, {"success": False, "message": "User not found"}
+@api.get("/ImportantInformation/{job_group}", response={201: List[ImportandResponseSchema], 401: dict, 404: dict, 500: dict})
+def get_important_by_job(request, job_group: str, authorization: str = Header(None)):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
+    try:
         job_group_obj = Job.objects.filter(name=job_group).first()
         if not job_group_obj:
             return 404, {"success": False, "message": "Job group not found"}
 
-        # Get important information associated with the job group
         important_infos = (
             ImportantInformation.objects.filter(
                 id__in=job_group_obj.ImportantInformations.values_list("id", flat=True)
@@ -346,22 +342,24 @@ def get_importend_by_job(request, job_group, authorization: str = Header(None)):
             .prefetch_related("informationFrom")
         )
 
-        response_data = []
-        for info in important_infos:
-            response_data.append(
-                {
-                    "thread_id": info.informationFrom.id_thread,
-                    "title": info.informationFrom.titel,
-                    "summary": info.informationFrom.content_summary,
-                    "important_information": info.information,
-                }
-            )
+        response_data = [
+            {
+                "thread_id": info.informationFrom.id_thread,
+                "title": info.informationFrom.titel,
+                "summary": info.informationFrom.content_summary,
+                "important_information": info.information,
+            }
+            for info in important_infos
+        ]
 
         return 201, response_data
 
-    except Exception as e:
-        logger.error(f"Error occurred while fetching important information: {e}")
+    except Http404 as e:
+        logger.warning(f"Resource not found: {e}")
         return 404, {"success": False, "message": str(e)}
+    except Exception as e:
+        logger.error(f"Unexpected error occurred while fetching important information for job group {job_group} by user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # upvote everything
