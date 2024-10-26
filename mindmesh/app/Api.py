@@ -267,10 +267,7 @@ def get_image(request, payload: ImagePayload, authorization: str = Header(None))
         return 500, {"success": False, "message": "An unexpected error occurred"}
 
 # Update a specific text
-@api.post(
-    "/TextUpdate",
-    response={201: ThreadResponseSchema, 403: NotFoundSchema, 404: NotFoundSchema},
-)
+@api.post("/TextUpdate/{thread_id}", response={201: ThreadResponseSchema, 401: dict, 403: dict, 400: dict, 404: dict, 500: dict})
 def update_text(
     request,
     thread_id: int,
@@ -278,11 +275,11 @@ def update_text(
     file: UploadedFile = File(None),
     authorization: str = Header(None),
 ):
-    try:
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
+    try:
         thread = get_object_or_404(Thread, id_thread=thread_id)
 
         if thread.created_by != user:
@@ -303,28 +300,26 @@ def update_text(
             if file:
                 try:
                     ThreadHelper.delete_existing_image(thread)
-
                     new_image_instance, _ = ThreadHelper.handle_image_upload(file, user)
                     thread.image_url = new_image_instance
                 except Exception as e:
-                    return 400, {"success": False, "message": str(e)}
+                    logger.error(f"File upload error for thread {thread_id}: {e}")
+                    return 400, {"success": False, "message": f"File upload failed: {str(e)}"}
 
             thread.save()
-
             response_data = ThreadHelper.format_thread_response(thread, request)
 
         return 201, response_data
 
     except ValueError as e:
-        logger.error(f"Validation error occurred: {e}")
+        logger.warning(f"Validation error for thread {thread_id}: {e}")
         return 400, {"success": False, "message": str(e)}
-    except Thread.DoesNotExist:
-        return 404, {"success": False, "message": "Thread not found"}
-    except Tag.DoesNotExist:
-        return 404, {"success": False, "message": "Tag not found"}
+    except Http404 as e:
+        logger.error(f"Resource not found: {e}")
+        return 404, {"success": False, "message": str(e)}
     except Exception as e:
-        logger.error(f"Unexpected error occurred while updating the thread: {e}")
-        return 404, {"success": False, "message": "An unexpected error occurred"}
+        logger.error(f"Unexpected error occurred while updating thread {thread_id} for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 #get important information for a job group
