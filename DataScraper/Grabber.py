@@ -3,14 +3,14 @@ from bs4 import BeautifulSoup
 from re import sub, findall
 
 def GetLinksFromCategory(category):
-    nextUrl = f"https://de.wikipedia.org/wiki/Kategory:{category}"
+    nextUrl = f"https://de.wikipedia.org/wiki/Kategorie:{category}"
     links = []
     skipFirst = False
     while True:
         response = get(nextUrl).text
         soup = BeautifulSoup(response, "html.parser")
-        div = soup.find_all("div", {"id": "mw-pages"})
-        hrefs = findall(r"/wiki/[^\"]*\"", str(div))
+        div= soup.find_all("div", {"id": "mw-pages"})
+        hrefs = findall(r"\"/wiki/[^\"]*\"", str(div))
         if hrefs:
             for href in hrefs:
                 if skipFirst is False:
@@ -20,7 +20,7 @@ def GetLinksFromCategory(category):
         if len(links) % 199 != 1:
             return links
         lastSubject = findall(r"[^/]*$", links[-1])[0]
-        nextUrl = f"https://de.wikipedia.org/w/index.php?title=Kategory:{category}&pagefrom={lastSubject}#mw-pages"
+        nextUrl = f"https://de.wikipedia.org/w/index.php?title=Kategorie:{category}&pagefrom={lastSubject}#mw-pages"
         skipFirst = True
 
 def GetPageContent(url):

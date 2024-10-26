@@ -2,9 +2,9 @@ from Grabber import GetLinksFromCategory, GetPageContent
 
 def main():
     with open("createdTexts.txt", "r") as file:
-        createdTexts = file.read()
+        createdTexts = file.read().split("\n")
     with open("categories.txt", "r") as file:
-        categories = file.read()
+        categories = file.read().split("\n")
     with open("createdTexts.txt", "a") as file:
         for category in categories:
             links = GetLinksFromCategory(category)
@@ -14,7 +14,7 @@ def main():
                     titel, content = GetPageContent(f"https://de.wikipedia.org{link}")
                     # TODO: Summary und Tags getten
                         # Text in die Datenbank adden
-                    createdTexts.appen(link)
+                    createdTexts.append(link)
                     file.write(f"{link}\n")
 
 
