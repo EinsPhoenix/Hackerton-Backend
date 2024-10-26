@@ -31,7 +31,6 @@ from typing import List
 from fastapi import HTTPException
 from django.db.models import Q
 
-
 # Lokale Module
 from ...models import (
     Thread,
