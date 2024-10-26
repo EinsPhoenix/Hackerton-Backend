@@ -29,7 +29,7 @@ from google.auth.transport import requests as google_requests
 # Drittanbieter-Bibliotheken
 from ninja import NinjaAPI, Schema, UploadedFile, Form, File, Header
 from ninja.errors import HttpError
-from typing import List
+from typing import List, Optional
 from fastapi import HTTPException
 from django.db.models import Q
 
@@ -177,24 +177,23 @@ def get_texts_by_tag(request, tag_name: str, authorization: str = Header(None)):
 
 
 # new text add
-@api.post("/AddNewText", response={201: ThreadResponseSchema, 404: NotFoundSchema})
+@api.post("/AddNewText", response={201: ThreadResponseSchema, 401: dict, 400: dict, 500: dict})
 def add_new_text(
     request,
     payload: Form[CreateThreadSchema],
-    file: UploadedFile = File(None),
+    file: Optional[UploadedFile] = File(None),
     authorization: str = Header(None),
 ):
-    try:
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
+    try:
         main_tag = get_object_or_404(Tag, name=payload.main_tag)
 
         image_instance, image_url = ThreadHelper.handle_image_upload(file, user)
 
         with transaction.atomic():
-
             new_thread = ThreadHelper.create_thread(
                 payload, user, main_tag, image_instance
             )
@@ -216,10 +215,13 @@ def add_new_text(
         return 201, response_data
 
     except ValueError as e:
-        return 404, {"success": False, "message": str(e)}
+        logger.warning(f"Validation error while adding new text for user {user.id}: {e}")
+        return 400, {"success": False, "message": str(e)}
+    except Http404:
+        return 404, {"success": False, "message": "Tag not found"}
     except Exception as e:
-        logger.error(f"Error occurred while adding new text: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while adding new text for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 # Get Image for profile or thread
 @api.post("/GetImages", response={201: ImageResponseSchema, 404: NotFoundSchema})
