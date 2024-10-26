@@ -50,26 +50,10 @@ from ...models import (
     ImportantInformation,
     Job,
 )
-from ..aiModule import GenerateResponse
-from ..helperClasses.threadsHelper import ThreadHelper
-from ..helperClasses.textByPrefs import TextsByPrefs
 
-from ..helperClasses.tokenVerificationHelper import TokenVerificationHelper
-from ..helperClasses.userActivitys import (
-    get_user_from_token,
-    create_custom_token,
-    perform_search,
-)
-from ..helperClasses.report import ReportReciever
-from ..helperClasses.userPrefsUpvotes import (
-    handle_thread_vote,
-    handle_comment_vote,
-    handle_shared_vote,
-)
-from ..helperClasses.userProfileLogin import (
-    handle_existing_user,
-    create_new_user,
-)
+
+
+
 from ...schema import (
     NotFoundSchema,
     CreateThreadSchema,

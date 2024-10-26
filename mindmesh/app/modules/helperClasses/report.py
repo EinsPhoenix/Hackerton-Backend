@@ -37,8 +37,6 @@ from ...models import (
     SharedQuestion,
     ReportModel
 )
-from ..aiModule import GenerateResponse
-from .textByPrefs import TextsByPrefs
 from ...schema import (
     NotFoundSchema,
     CreateThreadSchema,
