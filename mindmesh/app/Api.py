@@ -744,25 +744,28 @@ def weight_user_prefs(
 
 
 # Ai gens tags for text
-@api.post("/Ai/GenerateTags", response={200: dict, 201: dict, 404: NotFoundSchema})
+@api.post("/Ai/GenerateTags", response={200: dict, 201: dict, 400: dict, 401: dict, 500: dict})
 def generate_tags(request, payload: TagGivingSchema, authorization: str = Header(None)):
-    try:
-        user = get_user_from_token(authorization)
-        if user is None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
-        logger.info("Generating tags for text")
+    logger.info(f"User {user.id} is generating tags for provided content")
+
+    try:
         generate_response = GenerateResponse()
 
         tags_list = list(Tag.objects.values_list("name", flat=True))
+        logger.debug(f"Existing tags retrieved: {tags_list}")
 
         tags_response = generate_response.evaluate_text(tags_list, payload.content)
-        logger.info("Generated tags")
+        logger.info("Tags generated successfully")
 
-        return {"success": True, "preferences": tags_response}
+        return 201, {"success": True, "tags": tags_response}
+    
     except Exception as e:
-        logger.error(f"Error occurred while generating tags: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Error occurred while generating tags for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 @api.post("/Ai/Summarize/{language}", response={200: dict, 404: NotFoundSchema})

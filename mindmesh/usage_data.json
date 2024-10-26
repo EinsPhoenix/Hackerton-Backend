@@ -51,6 +51,21 @@
                     "prompt_token_count": 141,
                     "candidates_token_count": 108,
                     "total_token_count": 249
+                },
+                {
+                    "prompt_token_count": 243,
+                    "candidates_token_count": 87,
+                    "total_token_count": 330
+                }
+            ],
+            "errors": 0
+        },
+        "AIzaSyBYjabiJRjEJiFmHBDlR3KP6WZ0xSmJUQw": {
+            "anfragen": [
+                {
+                    "prompt_token_count": 243,
+                    "candidates_token_count": 87,
+                    "total_token_count": 330
                 }
             ],
             "errors": 0
