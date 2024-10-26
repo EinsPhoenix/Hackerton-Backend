@@ -450,21 +450,27 @@ def share_question(
         return 500, {"success": False, "message": "An unexpected error occurred"}
 
 # Get shared questions for the user
-@api.get(
-    "/QuestionsShared",
-    response={201: List[SharedQuestionResponseSchema], 404: NotFoundSchema},
-)
+@api.get("/QuestionsShared", response={200: List[SharedQuestionResponseSchema], 401: dict, 404: dict, 500: dict})
 def get_shared_questions_by_thread(request, authorization: str = Header(None)):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
     try:
-        user = get_user_from_token(authorization)
         response_data = ShareQuestionHelper.get_shared_questions_by_user(user)
-        return 201, response_data
+        return 200, response_data
+
+    except Http404:
+        logger.warning(f"No shared questions found for user {user.id}")
+        return 404, {"success": False, "message": "No shared questions found"}
 
     except HttpError as e:
+        logger.error(f"HttpError occurred while fetching shared questions for user {user.id}: {str(e)}")
         return e.status_code, {"success": False, "message": str(e)}
+
     except Exception as e:
-        logger.error(f"Error occurred while fetching questions: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while fetching shared questions for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # get all questions based on thread id
