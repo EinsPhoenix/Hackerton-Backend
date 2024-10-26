@@ -538,9 +538,7 @@ def verify_token(request, payload: GoogleVerificationSchema):
         return 404, {"success": False, "message": str(e)}
 
 
-@api.post(
-    "/CreateOrLoginUserWithMail", response={201: dict, 200: dict, 404: NotFoundSchema}
-)
+@api.post("/CreateOrLoginUserWithMail", response={201: dict, 200: dict, 404: NotFoundSchema})
 def create_user(
     request, payload: Form[CreateUserSchema], file: UploadedFile = File(None)
 ):
@@ -569,34 +567,34 @@ def create_user(
 
 
 # AI gens quiz
-@api.get(
-    "/Ai/GenerateQuiz/{thread_id}/{language}", response={200: dict, 404: NotFoundSchema}
-)
+@api.get("/Ai/GenerateQuiz/{thread_id}/{language}", response={200: dict, 401: dict, 404: dict, 500: dict})
 def generate_quiz(
     request, thread_id: int, language: str, authorization: str = Header(None)
 ):
-    try:
-        user = get_user_from_token(authorization)
-        if user is None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
-        generate_response = GenerateResponse()
+    try:
         thread = get_object_or_404(Thread, id_thread=thread_id)
 
-        try:
-            quiz_data = generate_response.create_quiz(thread.content, language)
-            if "error" in quiz_data:
-                return {"success": False, "message": quiz_data["error"]}
-            logger.info(
-                f"Generated quiz for thread {thread.id_thread} in language {language}"
-            )
-            return {"success": True, "data": quiz_data}
-        except Exception as e:
-            logger.error(f"Failed to generate quiz: {str(e)}")
-            return {"error": str(e)}
+        generate_response = GenerateResponse()
+        quiz_data = generate_response.create_quiz(thread.content, language)
+
+        if "error" in quiz_data:
+            logger.warning(f"Failed to generate quiz for thread {thread_id} in language {language}: {quiz_data['error']}")
+            return 400, {"success": False, "message": quiz_data["error"]}
+
+        logger.info(f"Generated quiz for thread {thread_id} in language {language} by user {user.id}")
+        return 200, {"success": True, "data": quiz_data}
+
+    except Http404:
+        logger.warning(f"Thread ID {thread_id} not found for user {user.id}")
+        return 404, {"success": False, "message": "Thread not found"}
+
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while generating quiz for thread ID {thread_id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # AI correcting Questions and answers

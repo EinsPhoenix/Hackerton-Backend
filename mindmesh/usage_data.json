@@ -1,0 +1,44 @@
+{
+    "usage_API": {
+        "AIzaSyA9sOb3bRObCa1t1yvJtEVN959Gk3U680Q": {
+            "anfragen": [
+                {
+                    "prompt_token_count": 141,
+                    "candidates_token_count": 99,
+                    "total_token_count": 240
+                }
+            ],
+            "errors": 0
+        },
+        "AIzaSyDbjXh5rjCrOjxTG8Wp6Mqzlihly7hEElw": {
+            "anfragen": [
+                {
+                    "prompt_token_count": 141,
+                    "candidates_token_count": 89,
+                    "total_token_count": 230
+                }
+            ],
+            "errors": 0
+        },
+        "AIzaSyDOJ5l3FzhZlsS0YOYxmQatPUcnDgCZi-I": {
+            "anfragen": [
+                {
+                    "prompt_token_count": 141,
+                    "candidates_token_count": 119,
+                    "total_token_count": 260
+                }
+            ],
+            "errors": 0
+        },
+        "AIzaSyDbeJNYg0wyYQjtcmFjSeml26VDbPwaZ-o": {
+            "anfragen": [
+                {
+                    "prompt_token_count": 141,
+                    "candidates_token_count": 108,
+                    "total_token_count": 249
+                }
+            ],
+            "errors": 0
+        }
+    }
+}
