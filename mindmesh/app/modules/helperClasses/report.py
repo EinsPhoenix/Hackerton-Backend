@@ -13,7 +13,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
-from .UserActivitys import get_user_from_token,create_custom_token, perform_search
+from .userActivitys import get_user_from_token,create_custom_token, perform_search
 
 # Google Auth-Bibliotheken
 from google.auth.transport import requests
@@ -37,8 +37,8 @@ from ...models import (
     SharedQuestion,
     ReportModel
 )
-from ..AiModule import GenerateResponse
-from .TextsByPrefs import TextsByPrefs
+from ..aiModule import GenerateResponse
+from .textByPrefs import TextsByPrefs
 from ...schema import (
     NotFoundSchema,
     CreateThreadSchema,

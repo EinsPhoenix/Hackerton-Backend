@@ -50,23 +50,23 @@ from .models import (
     ImportantInformation,
     Job,
 )
-from .modules.AiModule import GenerateResponse
-from .modules.HelperClasses.ThreadsHelper import ThreadHelper
-from .modules.HelperClasses.TextsByPrefs import TextsByPrefs
-from .modules.HelperClasses.ShareQuestionHelper import ShareQuestionHelper
-from .modules.HelperClasses.TokenVerificationHelper import TokenVerificationHelper
-from .modules.HelperClasses.UserActivitys import (
+from .modules.aiModule import GenerateResponse
+from .modules.helperClasses.threadsHelper import ThreadHelper
+from .modules.helperClasses.textByPrefs import TextsByPrefs
+from .modules.helperClasses.shareQuestionHelper import ShareQuestionHelper
+from .modules.helperClasses.tokenVerificationHelper import TokenVerificationHelper
+from .modules.helperClasses.userActivitys import (
     get_user_from_token,
     create_custom_token,
     perform_search,
 )
-from .modules.HelperClasses.Report import ReportReciever
-from .modules.HelperClasses.UserPrefsUpvotes import (
+from .modules.helperClasses.report import ReportReciever
+from .modules.helperClasses.userPrefsUpvotes import (
     handle_thread_vote,
     handle_comment_vote,
     handle_shared_vote,
 )
-from .modules.HelperClasses.UserProfileLogin import (
+from .modules.helperClasses.userProfileLogin import (
     handle_existing_user,
     create_new_user,
 )

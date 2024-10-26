@@ -3,6 +3,9 @@ import json
 import logging
 import os
 import time
+import hashlib
+from datetime import date
+import requests
 
 # Django-Bibliotheken
 from django.contrib.auth.hashers import check_password, make_password
@@ -12,15 +15,24 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
+from django.core.files.images import get_image_dimensions
+from django.core.exceptions import ValidationError
+from django.conf import settings
+from django.core.files.storage import default_storage
+
 # Google Auth-Bibliotheken
 from google.auth.transport import requests
 from google.oauth2 import id_token
+from google.auth.transport import requests as google_requests
+
 
 # Drittanbieter-Bibliotheken
-from ninja import NinjaAPI
+from ninja import NinjaAPI, Schema, UploadedFile, Form, File, Header
 from ninja.errors import HttpError
 from typing import List
 from fastapi import HTTPException
+from django.db.models import Q
+
 
 # Lokale Module
 from ...models import (
@@ -32,14 +44,31 @@ from ...models import (
     Comment,
     UserPreferences,
     SharedQuestion,
-    
+    ReportModel,
+    SearchRequests,
+    UploadedImage,
+    ImportantInformation,
+    Job,
 )
-from ..AiModule import GenerateResponse
-from .TextsByPrefs import TextsByPrefs
+from ..aiModule import GenerateResponse
+from ..helperClasses.threadsHelper import ThreadHelper
+from ..helperClasses.textByPrefs import TextsByPrefs
+
+from ..helperClasses.tokenVerificationHelper import TokenVerificationHelper
+from ..helperClasses.userActivitys import (
+    get_user_from_token,
+    create_custom_token,
+    perform_search,
+)
+from ..helperClasses.report import ReportReciever
+
+from ..helperClasses.userProfileLogin import (
+    handle_existing_user,
+    create_new_user,
+)
 from ...schema import (
     NotFoundSchema,
     CreateThreadSchema,
-    UpdateThreadSchema,
     CreateUserSchema,
     ThreadResponseSchema,
     CheckQuestionSchema,
@@ -49,8 +78,20 @@ from ...schema import (
     SharedQuestionResponseSchema,
     CreateSharedQuestionSchema,
     PasswordConfirmationSchema,
-    UserSchema
+    SearchRequest,
+    ReportPayload,
+    PublicUserResponse,
+    UserRequest,
+    ImageResponseSchema,
+    ImagePayload,
+    SearchResponseSchema,
+    CommentResponseSchema,
+    CommentCreateSchema,
+    GoogleVerificationSchema,
+    ImportandResponseSchema,
 )
+
+logger = logging.getLogger(__name__)
 
 def update_preferences(user_activity, thread, delta):
     main_tag = thread.main_tag

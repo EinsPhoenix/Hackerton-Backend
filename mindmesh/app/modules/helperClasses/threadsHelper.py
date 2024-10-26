@@ -5,6 +5,7 @@ import os
 import time
 import hashlib
 from datetime import date
+import requests
 
 # Django-Bibliotheken
 from django.contrib.auth.hashers import check_password, make_password
@@ -24,12 +25,14 @@ from google.auth.transport import requests
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 
+
 # Drittanbieter-Bibliotheken
-from ninja import NinjaAPI,Schema, UploadedFile, Form, File, Header
+from ninja import NinjaAPI, Schema, UploadedFile, Form, File, Header
 from ninja.errors import HttpError
 from typing import List
 from fastapi import HTTPException
 from django.db.models import Q
+
 
 # Lokale Module
 from ...models import (
@@ -44,17 +47,32 @@ from ...models import (
     ReportModel,
     SearchRequests,
     UploadedImage,
+    ImportantInformation,
+    Job,
 )
-from ..AiModule import GenerateResponse
-from ..HelperClasses.TextsByPrefs import TextsByPrefs
-from ..HelperClasses.UserActivitys import get_user_from_token,create_custom_token, perform_search
-from ..HelperClasses.Report import ReportReciever
-from ..HelperClasses.UserPrefsUpvotes import handle_thread_vote, handle_comment_vote, handle_shared_vote
-from ..HelperClasses.UserProfileLogin import handle_existing_user, create_new_user
+from ..aiModule import GenerateResponse
+
+from ..helperClasses.textByPrefs import TextsByPrefs
+
+from ..helperClasses.tokenVerificationHelper import TokenVerificationHelper
+from ..helperClasses.userActivitys import (
+    get_user_from_token,
+    create_custom_token,
+    perform_search,
+)
+from ..helperClasses.report import ReportReciever
+from ..helperClasses.userPrefsUpvotes import (
+    handle_thread_vote,
+    handle_comment_vote,
+    handle_shared_vote,
+)
+from ..helperClasses.userProfileLogin import (
+    handle_existing_user,
+    create_new_user,
+)
 from ...schema import (
     NotFoundSchema,
     CreateThreadSchema,
-    UpdateThreadSchema,
     CreateUserSchema,
     ThreadResponseSchema,
     CheckQuestionSchema,
@@ -64,7 +82,6 @@ from ...schema import (
     SharedQuestionResponseSchema,
     CreateSharedQuestionSchema,
     PasswordConfirmationSchema,
-    UserSchema,
     SearchRequest,
     ReportPayload,
     PublicUserResponse,
@@ -74,9 +91,11 @@ from ...schema import (
     SearchResponseSchema,
     CommentResponseSchema,
     CommentCreateSchema,
-    MessageResponseSchema,
-    GoogleVerificationSchema
+    GoogleVerificationSchema,
+    ImportandResponseSchema,
 )
+
+logger = logging.getLogger(__name__)
 
 logger = logging.getLogger(__name__)
 
