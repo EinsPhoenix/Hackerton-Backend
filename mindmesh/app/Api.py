@@ -363,7 +363,7 @@ def get_important_by_job(request, job_group: str, authorization: str = Header(No
 
 
 # upvote everything
-@api.post("/Upvote", response={200: dict, 201: dict, 404: NotFoundSchema})
+@api.post("/Upvote", response={200: dict, 201: dict, 401: dict, 404: dict, 500: dict})
 def upvote_text(
     request, payload: UpvoteTypeResponse, authorization: str = Header(None)
 ):
