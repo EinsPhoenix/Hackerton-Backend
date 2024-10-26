@@ -73,7 +73,6 @@ from .modules.HelperClasses.UserProfileLogin import (
 from .schema import (
     NotFoundSchema,
     CreateThreadSchema,
-    UpdateThreadSchema,
     CreateUserSchema,
     ThreadResponseSchema,
     CheckQuestionSchema,
@@ -83,7 +82,6 @@ from .schema import (
     SharedQuestionResponseSchema,
     CreateSharedQuestionSchema,
     PasswordConfirmationSchema,
-    UserSchema,
     SearchRequest,
     ReportPayload,
     PublicUserResponse,
@@ -93,7 +91,6 @@ from .schema import (
     SearchResponseSchema,
     CommentResponseSchema,
     CommentCreateSchema,
-    MessageResponseSchema,
     GoogleVerificationSchema,
     ImportandResponseSchema,
 )
