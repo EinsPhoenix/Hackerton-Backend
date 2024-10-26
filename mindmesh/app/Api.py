@@ -499,22 +499,30 @@ def get_shared_questions_by_thread(
 
 
 # delete shared question
-@api.delete(
-    "/ManageSharedQuestion/{question_id}", response={204: dict, 404: NotFoundSchema}
-)
+@api.delete("/ManageSharedQuestion/{question_id}", response={204: dict, 401: dict, 404: dict, 500: dict})
 def delete_shared_question(
     request, question_id: int, authorization: str = Header(None)
 ):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
     try:
-        user = get_user_from_token(authorization)
-        ShareQuestionHelper.delete_shared_question(user, question_id)
+        deleted = ShareQuestionHelper.delete_shared_question(user, question_id)
+        
+        if not deleted:
+            logger.warning(f"Shared question ID {question_id} not found for user {user.id}")
+            return 404, {"success": False, "message": "Shared question not found"}
+
         return 204, {"success": True, "message": "Deleted"}
 
     except HttpError as e:
+        logger.error(f"HttpError occurred while deleting shared question ID {question_id} for user {user.id}: {str(e)}")
         return e.status_code, {"success": False, "message": str(e)}
+
     except Exception as e:
-        logger.error(f"Error occurred while deleting shared question: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while deleting shared question ID {question_id} for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # Token veryfizierung
