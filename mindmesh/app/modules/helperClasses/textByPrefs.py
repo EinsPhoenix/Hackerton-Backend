@@ -1,6 +1,6 @@
 from django.utils import timezone
 
-from ...models import Thread, User, Tag, UserProfile, UserActivity, Comment, UserPreferences
+from ...models import Thread,  UserActivity, UserPreferences
 import random
 
 class TextsByPrefs:
