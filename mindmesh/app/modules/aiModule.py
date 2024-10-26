@@ -15,15 +15,13 @@ logger = logging.getLogger(__name__)
 
 class GenerateResponse:
     def __init__(self):
+     
+        load_dotenv()
         self.api_keys = [
-            os.getenv("GOOGLE_API_KEY_1"),
-            os.getenv("GOOGLE_API_KEY_2"),
-            os.getenv("GOOGLE_API_KEY_3"),
-            os.getenv("GOOGLE_API_KEY_4"),
-            os.getenv("GOOGLE_API_KEY_5"),
+            os.getenv(f"GOOGLE_API_KEY_{i}")
+            for i in range(1, 17)
+            if os.getenv(f"GOOGLE_API_KEY_{i}")
         ]
-
-        self.api_keys = [key for key in self.api_keys if key]
 
         if not self.api_keys:
             raise ValueError("Keine gültigen API-Schlüssel gefunden")
