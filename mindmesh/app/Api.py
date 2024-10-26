@@ -768,28 +768,31 @@ def generate_tags(request, payload: TagGivingSchema, authorization: str = Header
         return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
-@api.post("/Ai/Summarize/{language}", response={200: dict, 404: NotFoundSchema})
+@api.post("/Ai/Summarize/{language}", response={200: dict, 400: dict, 401: dict, 500: dict})
 def summarize_ai(
-    request, language, payload: TagGivingSchema, authorization: str = Header(None)
+    request, language: str, payload: TagGivingSchema, authorization: str = Header(None)
 ):
-    try:
-        user = get_user_from_token(authorization)
-        if user is None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
-        logger.info("Summarizing text")
+    logger.info(f"User {user.id} is summarizing text in {language}")
+
+    try:
         generate_response = GenerateResponse()
         result = generate_response.summarize_text(
             payload.content, payload.titel, language
         )
+        
+        logger.info("Text summarized successfully")
+        return 200, {"success": True, "summary": result}
 
-        return 200, result
-
+    except ValueError as ve:
+        logger.error(f"Value error while summarizing: {ve}")
+        return 400, {"success": False, "message": "Invalid input data"}
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
-
-    summarieze_tags
+        logger.error(f"Error occurred while summarizing text for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # Funktion for data creation
