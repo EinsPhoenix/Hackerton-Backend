@@ -425,23 +425,29 @@ def delete_text(request, thread_id: int, authorization: str = Header(None)):
 
 
 # Share, delet and get Questions
-@api.post(
-    "/ShareQuestion",
-    response={200: dict, 201: SharedQuestionResponseSchema, 404: NotFoundSchema},
-)
+@api.post("/ShareQuestion", response={200: dict, 201: SharedQuestionResponseSchema, 401: dict, 404: dict, 500: dict})
 def share_question(
     request, payload: CreateSharedQuestionSchema, authorization: str = Header(None)
 ):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
     try:
-        user = get_user_from_token(authorization)
         response_data = ShareQuestionHelper.create_shared_question(user, payload)
         return 201, response_data
 
+    except Http404:
+        logger.warning(f"Question not found or invalid data for user {user.id}")
+        return 404, {"success": False, "message": "Question not found"}
+
     except HttpError as e:
+        logger.error(f"HttpError occurred: {e.status_code}, {str(e)}")
         return e.status_code, {"success": False, "message": str(e)}
+
     except Exception as e:
-        logger.error(f"Error occurred while fetching questions: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while sharing question for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 # Get shared questions for the user
 @api.get(
