@@ -38,79 +38,110 @@ def delete_all_users(modeladmin, request, queryset):
 
 @admin.register(UserPreferences)
 class UserPreferencesAdmin(admin.ModelAdmin):
-    list_display = ( 'user', 'preference', 'weight','id')
+    list_display = [field.name for field in UserPreferences._meta.fields if field.name not in ['user']]
+    list_display.append('user_str')
+
     search_fields = ('id', 'user__email', 'preference')
     list_filter = ('weight', 'preference')
     actions = [delete_all_users]
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'image_url', 'bio', 'job__name', 'id')
+    list_display = [field.name for field in UserProfile._meta.fields if field.name not in ['user', 'image_url', 'job', 'solvedThreads']]
+    list_display.append('user_str')
+    list_display.append('job_str')
+    list_display.append('image_url_str')
+    list_display.append('solvedThreads_str')
     search_fields = ('id', 'user__email', 'bio', 'job__name')
     list_filter = ('user__email','job__name', 'id')
     actions = [delete_all_users]
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ('name','id')
+    list_display = [field.name for field in Tag._meta.fields]
     search_fields = ('name', 'id')
     actions = [fill_data_with_tags]
 
 @admin.register(Thread)
 class ThreadAdmin(admin.ModelAdmin):
-    list_display = ('titel', 'content_summary', 'main_tag', 'created_by', 'created_at', 'upvotes', 'image_url', 'id_thread')
+    list_display = [field.name for field in Thread._meta.fields if field.name not in ['main_tag', 'subtags', 'image_url', 'created_by']]
+    list_display.append('main_tag_str')
+    list_display.append('subtags_str')
+    list_display.append('image_url_str')
+    list_display.append('created_by_str')
+
+
     search_fields = ('titel', 'content', 'created_by__username', 'id_thread')
     list_filter = ('main_tag', 'created_by', 'created_at', 'id_thread', 'image_url')
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('thread', 'content', 'created_by', 'created_at', 'upvotes', 'comment_id')
+    list_display = [field.name for field in Comment._meta.fields if field.name not in ['thread', 'created_by', 'reacting']]
+    list_display.append('thread_str')
+    list_display.append('created_by_str')
+    list_display.append('reacting_str')
     search_fields = ('content', 'created_by__username', 'comment_id', 'id')
     list_filter = ('thread', 'created_by', 'created_at', 'comment_id')
 
 @admin.register(SharedQuestion)
 class SharedQuestionAdmin(admin.ModelAdmin):
-    list_display = ('thread', 'content', 'created_by', 'created_at', 'upvotes', 'shared_id')
+    list_display = [field.name for field in SharedQuestion._meta.fields if field.name not in ['thread', 'created_by']]
+    list_display.append('thread_str')
+    list_display.append('created_by_str')
     search_fields = ('content', 'created_by__username', 'shared_id', 'id')
     list_filter = ('thread', 'created_by', 'created_at', 'shared_id')
 
 @admin.register(UserActivity)
 class UserActivityAdmin(admin.ModelAdmin):
-    list_display = ('user','id')
+    list_display = [field.name for field in UserActivity._meta.fields if field.name not in ['user', 'upvoted_threads', 'downvoted_threads', 'upvoted_comments', 'downvoted_comments', 'upvoted_shared_questions', 'downvoted_shared_questions']]
+    list_display.append('user_str')
+    list_display.append('upvotedThreads_str')
+    list_display.append('downvotedThreads_str')
+    list_display.append('upvotedComments_str')
+    list_display.append('downvotedComments_str')
+    list_display.append('upvotedSharedQuestions_str')
+    list_display.append('downvotedSharedQuestions_str')
     search_fields = ('user__username', 'id')
 
 @admin.register(ReportModel)
 class ReportModelAdmin(admin.ModelAdmin):
-    list_display = ( 'reported_by', 'reported_at', 'reported_why', 'reported_type', 'reported_object','report_id')
+    list_display = [field.name for field in ReportModel._meta.fields if field.name not in ['reported_by', 'reported_object']]
+    list_display.append('reported_by_str')
+    list_display.append('reported_object_str')
+    # list_display.append('content_type_str')
     search_fields = ('reported_by__username', 'reported_why', 'reported_object', 'report_id', 'id')
     list_filter = ('reported_type', 'reported_at', 'reported_by')
 
 @admin.register(SearchRequests)
 class SearchRequestAdmin(admin.ModelAdmin):
-    list_display = ( 'user', 'timestamp', 'search_term','search_id')
+    list_display = [field.name for field in SearchRequests._meta.fields if field.name not in ['user']]
+    list_display.append('user_str')
     search_fields = ('search_id', 'user__username', 'timestamp', 'search_term')
     list_filter = ('search_id', 'user', 'timestamp')
 
 @admin.register(UploadedImage)
 class UploadedImageAdmin(admin.ModelAdmin):
-    list_display = ( 'uploaded_by', 'uploaded_at','image_id')
+    list_display = [field.name for field in UploadedImage._meta.fields if field.name not in ['uploaded_by']]
+    list_display.append('uploaded_by_str')
     search_fields = ('image_id', 'uploaded_by__username', 'uploaded_at')
     list_filter = ('image_id', 'uploaded_by', 'uploaded_at')
     
 @admin.register(CompanyProfile)
 class CompanyProfileAdmin(admin.ModelAdmin):
-    list_display = ('name', 'interests', 'branche', 'id')
+    list_display = [field.name for field in CompanyProfile._meta.fields]
     search_fields = ('name', 'branche', 'interests', 'id')
     list_filter = ('name', 'branche', 'interests', 'id')
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
-    list_display = ('name', 'id')
+    list_display = [field.name for field in Job._meta.fields if field.name not in ['ImportantInformations']]
+    list_display.append('ImportantInformations_str')
     search_fields = ('name', 'id')
     list_filter = ('name', 'id')
 
 @admin.register(ImportantInformation)
 class ImportantInformationAdmin(admin.ModelAdmin):
-    list_display = ('information', 'informationFrom', 'id')
+    list_display = [field.name for field in ImportantInformation._meta.fields if field.name not in ['informationFrom']]
+    list_display.append('informationFrom_str')
     search_fields = ('information', 'id')  
     list_filter = ('informationFrom', 'id')

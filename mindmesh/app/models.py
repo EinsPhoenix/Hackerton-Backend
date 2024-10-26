@@ -122,8 +122,20 @@ class Thread(models.Model):
             returnString = f'<a href="{link}">{user.username}</a>'
         return mark_safe(returnString)
     
+    def subtags_str(self):
+        returnString = ""
+        tags = self.subtags.all()
+
+        for tag in tags:
+            link = reverse("admin:%s_%s_change" % (tag._meta.app_label, tag._meta.model_name), args=[tag.pk])
+            returnString += f'<a href="{link}">{tag.name}</a><br>'
+        return mark_safe(returnString)
+    
     main_tag_str.short_description = 'Main Tag'
     main_tag_str.admin_order_field = 'main_tag'
+
+    subtags_str.short_description = 'Subtags'
+    subtags_str.admin_order_field = 'subtags'
 
     image_url_str.short_description = 'Image URL'
     image_url_str.admin_order_field = 'image_url'
@@ -359,6 +371,15 @@ class Comment(models.Model):
             link = reverse("admin:%s_%s_change" % (comment._meta.app_label, comment._meta.model_name), args=[comment.pk])
             returnString = f'<a href="{link}">{comment.content}</a>'
         return mark_safe(returnString)
+    
+    thread_str.short_description = 'Thread'
+    thread_str.admin_order_field = 'thread'
+
+    created_by_str.short_description = 'Created by'
+    created_by_str.admin_order_field = 'created_by'
+
+    reacting_str.short_description = 'Reacting'
+    reacting_str.admin_order_field = 'reacting'
 
 
 class SharedQuestion(models.Model):
@@ -541,7 +562,7 @@ class ReportModel(models.Model):
 
         if content_type:
             link = reverse("admin:%s_%s_change" % (content_type._meta.app_label, content_type._meta.model_name), args=[content_type.pk])
-            returnString = f'<a href="{link}">{content_type.name}</a>'
+            returnString = f'<a href="{link}">{content_type.model}</a>'
         return mark_safe(returnString)
     
     def reported_object_str(self):
