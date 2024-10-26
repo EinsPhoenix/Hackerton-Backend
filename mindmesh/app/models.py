@@ -4,6 +4,8 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
+from django.urls import reverse
+from django.utils.html import mark_safe
 import os
 from .modules.aiModule import GenerateResponse
 from django.utils import timezone
@@ -13,6 +15,8 @@ class CompanyProfile(models.Model):
     interests = models.TextField()
     branche = models.TextField()
     
+    class Meta:
+        ordering = ['name']
     
     
 class UserPreferences(models.Model):
@@ -20,16 +24,50 @@ class UserPreferences(models.Model):
     preference = models.CharField(max_length=255)
     weight = models.FloatField()
 
+    class Meta:
+        ordering = ['id']
+
     def __str__(self):
         return f"{self.user.username}'s preference"
+    
+    def user_str(self):
+        returnString = ""
+        user = self.user
+
+        if user:
+            link = reverse("admin:%s_%s_change" % (user._meta.app_label, user._meta.model_name), args=[user.pk])
+            returnString = f'<a href="{link}">{user.username}</a>'
+        return mark_safe(returnString)
+    
+    user_str.short_description = 'User'
+    user_str.admin_order_field = 'user'
+    
+
+    
 class UploadedImage(models.Model):
     image_id = models.AutoField(primary_key=True)
     image = models.ImageField(upload_to='images/')  
     uploaded_at = models.DateTimeField(auto_now_add=True)
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE) 
 
+    class Meta:
+        ordering = ['image_id']
+
+
     def __str__(self):
         return self.image.name
+    
+    def uploaded_by_str(self):
+        returnString = ""
+        user = self.uploaded_by
+
+        if user:
+            link = reverse("admin:%s_%s_change" % (user._meta.app_label, user._meta.model_name), args=[user.pk])
+            returnString = f'<a href="{link}">{user.username}</a>'
+        return mark_safe(returnString)
+    
+    uploaded_by_str.short_description = 'Uploaded by'
+    uploaded_by_str.admin_order_field = 'uploaded_by'
 
 class Tag(models.Model):
     name = models.CharField(max_length=255, unique=True) 
@@ -50,9 +88,48 @@ class Thread(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     upvotes = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['id_thread']
     
     def __str__(self):
         return self.content[:50]  
+    
+    def main_tag_str(self):
+        returnString = ""
+        tag = self.main_tag
+
+        if tag:
+            link = reverse("admin:%s_%s_change" % (tag._meta.app_label, tag._meta.model_name), args=[tag.pk])
+            returnString = f'<a href="{link}">{tag.name}</a>'
+        return mark_safe(returnString)
+    
+    def image_url_str(self):
+        returnString = ""
+        image = self.image_url
+
+        if image:
+            link = reverse("admin:%s_%s_change" % (image._meta.app_label, image._meta.model_name), args=[image.pk])
+            returnString = f'<a href="{link}">{image.image.name}</a>'
+        return mark_safe(returnString)
+    
+    def created_by_str(self):
+        returnString = ""
+        user = self.created_by
+
+        if user:
+            link = reverse("admin:%s_%s_change" % (user._meta.app_label, user._meta.model_name), args=[user.pk])
+            returnString = f'<a href="{link}">{user.username}</a>'
+        return mark_safe(returnString)
+    
+    main_tag_str.short_description = 'Main Tag'
+    main_tag_str.admin_order_field = 'main_tag'
+
+    image_url_str.short_description = 'Image URL'
+    image_url_str.admin_order_field = 'image_url'
+
+    created_by_str.short_description = 'Created by'
+    created_by_str.admin_order_field = 'created_by'
 
     
     def save(self, *args, **kwargs):
@@ -104,11 +181,45 @@ class ImportantInformation(models.Model):
     informationFrom = models.ForeignKey(Thread, null=True, blank=True, on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now)
 
+    class Meta:
+        ordering = ['id']
+
+    def informationFrom_str(self):
+        returnString = ""
+        thread = self.informationFrom
+
+        if thread:
+            link = reverse("admin:%s_%s_change" % (thread._meta.app_label, thread._meta.model_name), args=[thread.pk])
+            returnString = f'<a href="{link}">{thread.titel}</a>'
+        return mark_safe(returnString)
+    
+    informationFrom_str.short_description = 'Information from'
+    informationFrom_str.admin_order_field = 'informationFrom'
+
 class Job(models.Model):
     name = models.TextField()
     ImportantInformations = models.ManyToManyField(ImportantInformation, blank=True)
 
+    class Meta:
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+    
+    def ImportantInformations_str(self):
+        returnString = ""
+        important_info = self.ImportantInformations.all()
+
+        for info in important_info:
+            link = reverse("admin:%s_%s_change" % (info._meta.app_label, info._meta.model_name), args=[info.pk])
+            returnString += f'<a href="{link}">{info.information}</a><br>'
+        return mark_safe(returnString)
+    
+    ImportantInformations_str.short_description = 'Important Informations'
+    ImportantInformations_str.admin_order_field = 'ImportantInformations'
+
 class QuizAbsolved(models.Model):
+    # TODO Es muss noch entschieden werden welche String repräsentation wir hier machen wollen
     Question = models.TextField(null=False)
     AnswerFromUser = models.TextField(blank=True, null=False)
     AiAnswer = models.TextField(blank=True, null=False)
@@ -116,9 +227,37 @@ class QuizAbsolved(models.Model):
     
 
 class SolvedThreads(models.Model):
+    #TODO Es muss noch entschieden werden welche String repräsentation wir hier machen wollen
     Threads = models.ManyToManyField(Thread, blank=True, null=False)
     QuizAbsolved = models.ManyToManyField(QuizAbsolved, blank=True, null=False)
     Created_At = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['id']
+
+    def threads_str(self):
+        returnString = ""
+        threads = self.Threads.all()
+
+        for thread in threads:
+            link = reverse("admin:%s_%s_change" % (thread._meta.app_label, thread._meta.model_name), args=[thread.pk])
+            returnString += f'<a href="{link}">{thread.titel}</a><br>'
+        return mark_safe(returnString)
+
+    def quiz_absolved_str(self):
+        returnString = ""
+        quiz_absolved = self.QuizAbsolved.all()
+
+        for quiz in quiz_absolved:
+            link = reverse("admin:%s_%s_change" % (quiz._meta.app_label, quiz._meta.model_name), args=[quiz.pk])
+            returnString += f'<a href="{link}">{quiz.Question}</a><br>'
+        return mark_safe(returnString)
+    
+    threads_str.short_description = 'Threads'
+    threads_str.admin_order_field = 'Threads'
+
+    quiz_absolved_str.short_description = 'Quiz Absolved'
+    quiz_absolved_str.admin_order_field = 'QuizAbsolved'
     
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -130,6 +269,54 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username
+    
+    def user_str(self):
+        returnString = ""
+        user = self.user
+
+        if user:
+            link = reverse("admin:%s_%s_change" % (user._meta.app_label, user._meta.model_name), args=[user.pk])
+            returnString = f'<a href="{link}">{user.username}</a>'
+        return mark_safe(returnString)
+    
+    def image_url_str(self):
+        returnString = ""
+        image = self.image_url
+
+        if image:
+            link = reverse("admin:%s_%s_change" % (image._meta.app_label, image._meta.model_name), args=[image.pk])
+            returnString = f'<a href="{link}">{image.image.name}</a>'
+        return mark_safe(returnString)
+    
+    def job_str(self):
+        returnString = ""
+        job = self.job
+
+        if job:
+            link = reverse("admin:%s_%s_change" % (job._meta.app_label, job._meta.model_name), args=[job.pk])
+            returnString = f'<a href="{link}">{job.name}</a>'
+        return mark_safe(returnString)
+    
+    def solvedThreads_str(self):
+        returnString = ""
+        solved_threads = self.solvedThreads.all()
+
+        for thread in solved_threads:
+            link = reverse("admin:%s_%s_change" % (thread._meta.app_label, thread._meta.model_name), args=[thread.pk])
+            returnString += f'<a href="{link}">{thread.id}</a><br>'
+        return mark_safe(returnString)
+    
+    user_str.short_description = 'User'
+    user_str.admin_order_field = 'user'
+
+    image_url_str.short_description = 'Image URL'
+    image_url_str.admin_order_field = 'image_url'
+
+    job_str.short_description = 'Job'
+    job_str.admin_order_field = 'job'
+
+    solvedThreads_str.short_description = 'Solved Threads'
+    solvedThreads_str.admin_order_field = 'solvedThreads'
 
 class Comment(models.Model):
     comment_id = models.AutoField(primary_key=True)
@@ -140,8 +327,38 @@ class Comment(models.Model):
     upvotes = models.IntegerField(default=0)
     reacting = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
 
+    class Meta:
+        ordering = ['comment_id']
+
     def __str__(self):
         return self.content[:50]
+    
+    def thread_str(self):
+        returnString = ""
+        thread = self.thread
+
+        if thread:
+            link = reverse("admin:%s_%s_change" % (thread._meta.app_label, thread._meta.model_name), args=[thread.pk])
+            returnString = f'<a href="{link}">{thread.titel}</a>'
+        return mark_safe(returnString)
+    
+    def created_by_str(self):
+        returnString = ""
+        user = self.created_by
+
+        if user:
+            link = reverse("admin:%s_%s_change" % (user._meta.app_label, user._meta.model_name), args=[user.pk])
+            returnString = f'<a href="{link}">{user.username}</a>'
+        return mark_safe(returnString)
+    
+    def reacting_str(self):
+        returnString = ""
+        comment = self.reacting
+
+        if comment:
+            link = reverse("admin:%s_%s_change" % (comment._meta.app_label, comment._meta.model_name), args=[comment.pk])
+            returnString = f'<a href="{link}">{comment.content}</a>'
+        return mark_safe(returnString)
 
 
 class SharedQuestion(models.Model):
@@ -152,10 +369,38 @@ class SharedQuestion(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.CASCADE)
     upvotes = models.IntegerField(default=0)  
 
+    class Meta:
+        ordering = ['shared_id']
+
     def __str__(self):
         return self.content[:50]
     
+    def thread_str(self):
+        returnString = ""
+        thread = self.thread
+
+        if thread:
+            link = reverse("admin:%s_%s_change" % (thread._meta.app_label, thread._meta.model_name), args=[thread.pk])
+            returnString = f'<a href="{link}">{thread.titel}</a>'
+        return mark_safe(returnString)
+    
+    def created_by_str(self):
+        returnString = ""
+        user = self.created_by
+
+        if user:
+            link = reverse("admin:%s_%s_change" % (user._meta.app_label, user._meta.model_name), args=[user.pk])
+            returnString = f'<a href="{link}">{user.username}</a>'
+        return mark_safe(returnString)
+    
+    thread_str.short_description = 'Thread'
+    thread_str.admin_order_field = 'thread'
+
+    created_by_str.short_description = 'Created by'
+    created_by_str.admin_order_field = 'created_by'
+    
 class UserActivity(models.Model):
+    #TODO Es muss noch entschieden werden welche String repräsentation wir hier machen wollen
     user = models.ForeignKey(User, on_delete=models.CASCADE, default=1)
     upvotedThreads = models.ManyToManyField(Thread, related_name='threadsUpvoted')
     downvotedThreads = models.ManyToManyField(Thread, related_name='threadsDownvoted')
@@ -164,9 +409,95 @@ class UserActivity(models.Model):
     upvotedSharedQuestions = models.ManyToManyField(SharedQuestion, related_name='upvotedSharedQuestions')
     downvotedSharedQuestions = models.ManyToManyField(SharedQuestion, related_name='downvotedSharedQuestions')
 
+    class Meta:
+        ordering = ['id']
 
     def __str__(self):
         return f"UserActivity for {self.user.username}: Upvoted Threads (count: {self.upvotedThreads.count()})"
+
+    def user_str(self):
+        returnString = ""
+        user = self.user
+
+        if user:
+            link = reverse("admin:%s_%s_change" % (user._meta.app_label, user._meta.model_name), args=[user.pk])
+            returnString = f'<a href="{link}">{user.username}</a>'
+        return mark_safe(returnString)
+    
+    def upvotedThreads_str(self):
+        returnString = ""
+        threads = self.upvotedThreads.all()
+
+        for thread in threads:
+            link = reverse("admin:%s_%s_change" % (thread._meta.app_label, thread._meta.model_name), args=[thread.pk])
+            returnString += f'<a href="{link}">{thread.titel}</a><br>'
+        return mark_safe(returnString)
+    
+    def downvotedThreads_str(self):
+        returnString = ""
+        threads = self.downvotedThreads.all()
+
+        for thread in threads:
+            link = reverse("admin:%s_%s_change" % (thread._meta.app_label, thread._meta.model_name), args=[thread.pk])
+            returnString += f'<a href="{link}">{thread.titel}</a><br>'
+        return mark_safe(returnString)
+    
+    def upvotedComments_str(self):
+        returnString = ""
+        comments = self.upvotedComments.all()
+
+        for comment in comments:
+            link = reverse("admin:%s_%s_change" % (comment._meta.app_label, comment._meta.model_name), args=[comment.pk])
+            returnString += f'<a href="{link}">{comment.content}</a><br>'
+        return mark_safe(returnString)
+    
+    def downvotedComments_str(self):
+        returnString = ""
+        comments = self.downvotedComments.all()
+
+        for comment in comments:
+            link = reverse("admin:%s_%s_change" % (comment._meta.app_label, comment._meta.model_name), args=[comment.pk])
+            returnString += f'<a href="{link}">{comment.content}</a><br>'
+        return mark_safe(returnString)
+    
+    def upvotedSharedQuestions_str(self):
+        returnString = ""
+        shared_questions = self.upvotedSharedQuestions.all()
+
+        for shared_question in shared_questions:
+            link = reverse("admin:%s_%s_change" % (shared_question._meta.app_label, shared_question._meta.model_name), args=[shared_question.pk])
+            returnString += f'<a href="{link}">{shared_question.content}</a><br>'
+        return mark_safe(returnString)
+    
+    def downvotedSharedQuestions_str(self):
+        returnString = ""
+        shared_questions = self.downvotedSharedQuestions.all()
+
+        for shared_question in shared_questions:
+            link = reverse("admin:%s_%s_change" % (shared_question._meta.app_label, shared_question._meta.model_name), args=[shared_question.pk])
+            returnString += f'<a href="{link}">{shared_question.content}</a><br>'
+        return mark_safe(returnString)
+    
+    user_str.short_description = 'User'
+    user_str.admin_order_field = 'user'
+
+    upvotedThreads_str.short_description = 'Upvoted Threads'
+    upvotedThreads_str.admin_order_field = 'upvotedThreads'
+
+    downvotedThreads_str.short_description = 'Downvoted Threads'
+    downvotedThreads_str.admin_order_field = 'downvotedThreads'
+
+    upvotedComments_str.short_description = 'Upvoted Comments'
+    upvotedComments_str.admin_order_field = 'upvotedComments'
+
+    downvotedComments_str.short_description = 'Downvoted Comments'
+    downvotedComments_str.admin_order_field = 'downvotedComments'
+
+    upvotedSharedQuestions_str.short_description = 'Upvoted Shared Questions'
+    upvotedSharedQuestions_str.admin_order_field = 'upvotedSharedQuestions'
+
+    downvotedSharedQuestions_str.short_description = 'Downvoted Shared Questions'
+    downvotedSharedQuestions_str.admin_order_field = 'downvotedSharedQuestions'
 
 
 
@@ -189,8 +520,47 @@ class ReportModel(models.Model):
     ]
     reported_type = models.CharField(max_length=50, choices=REPORT_CHOICES)
 
+    class Meta:
+        ordering = ['report_id']
+
     def __str__(self):
         return f"Report {self.report_id} by {self.reported_by.username}"
+    
+    def reported_by_str(self):
+        returnString = ""
+        user = self.reported_by
+
+        if user:
+            link = reverse("admin:%s_%s_change" % (user._meta.app_label, user._meta.model_name), args=[user.pk])
+            returnString = f'<a href="{link}">{user.username}</a>'
+        return mark_safe(returnString)
+    
+    def content_type_str(self):
+        returnString = ""
+        content_type = self.content_type
+
+        if content_type:
+            link = reverse("admin:%s_%s_change" % (content_type._meta.app_label, content_type._meta.model_name), args=[content_type.pk])
+            returnString = f'<a href="{link}">{content_type.name}</a>'
+        return mark_safe(returnString)
+    
+    def reported_object_str(self):
+        returnString = ""
+        obj = self.reported_object
+
+        if obj:
+            link = reverse("admin:%s_%s_change" % (obj._meta.app_label, obj._meta.model_name), args=[obj.pk])
+            returnString = f'<a href="{link}">{obj}</a>'
+        return mark_safe(returnString)
+    
+    reported_by_str.short_description = 'Reported by'
+    reported_by_str.admin_order_field = 'reported_by'
+
+    content_type_str.short_description = 'Content Type'
+    content_type_str.admin_order_field = 'content_type'
+
+    reported_object_str.short_description = 'Reported Object'
+    reported_object_str.admin_order_field = 'reported_object'
     
 
 class SearchRequests(models.Model):
@@ -199,9 +569,24 @@ class SearchRequests(models.Model):
     search_term = models.CharField(max_length=255)
     timestamp = models.DateTimeField(auto_now_add=True)
     search_result = models.JSONField(default=dict)
+
+    class Meta:
+        ordering = ['search_id']
     
     def __str__(self):
         return f"Report {self.search_id} by {self.user.username}"
+    
+    def user_str(self):
+        returnString = ""
+        user = self.user
+
+        if user:
+            link = reverse("admin:%s_%s_change" % (user._meta.app_label, user._meta.model_name), args=[user.pk])
+            returnString = f'<a href="{link}">{user.username}</a>'
+        return mark_safe(returnString)
+    
+    user_str.short_description = 'User'
+    user_str.admin_order_field = 'user'
 
 @receiver(post_delete, sender=UploadedImage)
 def delete_image_file(sender, instance, **kwargs):
