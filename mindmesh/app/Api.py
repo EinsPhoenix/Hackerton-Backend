@@ -49,6 +49,9 @@ from .models import (
     UploadedImage,
     ImportantInformation,
     Job,
+    QuizAbsolved,
+    SolvedThreads
+    
 )
 from .modules.aiModule import GenerateResponse
 from .modules.helperClasses.threadsHelper import ThreadHelper
@@ -598,14 +601,35 @@ def check_answers(
                 "message": "Questions or answers not provided",
             }
 
+        # AI response with score and answers
         answer_data = generate_response.check_answers(
             thread.content, questions, answers, language
         )
+        
         if "error" in answer_data:
             return {"success": False, "message": answer_data["error"]}
 
-        logger.info(f"Checked answers for thread {thread.id_thread}")
+        # Save to QuizAbsolved model
+        quiz_entries = []
+        for i, question in enumerate(questions):
+            quiz_entry = QuizAbsolved(
+                Question=question,
+                AnswerFromUser=answers[i],
+                AiAnswer=answer_data["questions"][i],
+                score=answer_data["score"]
+            )
+            quiz_entry.save()
+            quiz_entries.append(quiz_entry)
+
+        # Save to SolvedThreads model
+        solved_thread = SolvedThreads.objects.create(Created_At=timezone.now())
+        solved_thread.Threads.add(thread)
+        solved_thread.QuizAbsolved.set(quiz_entries)
+        solved_thread.save()
+
+        logger.info(f"Checked and saved answers for thread {thread.id_thread}")
         return {"success": True, "data": answer_data}
+        
     except Exception as e:
         logger.error(f"Error occurred while fetching threads: {e}")
         return 404, {"success": False, "message": str(e)}
