@@ -916,6 +916,16 @@ def report_content(request, payload: ReportPayload, authorization: str = Header(
 #         "comments": false
 #     }
 # }
+# search working here is the payload example:
+# {
+#     "search_term": "Tech",
+#     "filters": {
+#         "user": true,
+#         "tags": true,
+#         "threads": true,
+#         "comments": false
+#     }
+# }
 @api.post(
     "/Search", response={200: dict, 201: SearchResponseSchema, 404: NotFoundSchema}
 )
@@ -930,7 +940,7 @@ def search_endpoint(
         if not user:
             raise HttpError(404, "User not found")
 
-        search_results = perform_search(payload.search_term, payload.filters.dict())
+        search_results = perform_search(payload.search_term, payload.filters.dict(), request)
 
         search_request = SearchRequests.objects.create(
             user=user,

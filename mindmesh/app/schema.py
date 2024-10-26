@@ -49,7 +49,7 @@ class ThreadResponseSchema(Schema):
     created_at: datetime
     upvotes: int
     image_url: Optional[str]
-    
+
 class ImportandResponseSchema(BaseModel):
     thread_id: int
     titel: str
@@ -84,7 +84,7 @@ class CreateSharedQuestionSchema(BaseModel):
 
 class SharedQuestionResponseSchema(BaseModel):
     success: bool
-    shared_id: int  
+    shared_id: int
     thread_id: int
     content: str
     created_at: str
@@ -119,7 +119,7 @@ class PublicUserResponse(Schema):
     user_id: int
     bio: str
     job: str
-    importantInfo: List[str] 
+    importantInfo: List[str]
     upvoted_threads: List[int]
     written_threads: List[ThreadSchema]
     shared_questions: List[SharedQuestionSchema]
@@ -173,17 +173,17 @@ class SearchRequest(BaseModel):
     filters: SearchFilters
 
 class SearchResultsSchema(BaseModel):
-    threadsmatching: List[ThreadSchema]
+    threadsmatching: List[GetTextsSchema]
     commentsmatching: List[CommentSchema]
     sharedQuestions: List[SharedQuestionSchema]
     users: List[UserSchema]
-    jobs: List[JobSchema]  
+    jobs: List[JobSchema]
 
 class SearchResponseSchema(BaseModel):
     success: bool
-    searchresult: SearchResultsSchema  
+    searchresult: SearchResultsSchema
     search_id: int
-    
+
 
 
 class ReportPayload(BaseModel):
@@ -222,4 +222,4 @@ class GoogleVerificationSchema(Schema):
 
 class CommentCreateSchema(Schema):
     content: str
-    
+
