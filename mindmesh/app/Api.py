@@ -977,9 +977,7 @@ def report_content(request, payload: ReportPayload, authorization: str = Header(
 #         "comments": false
 #     }
 # }
-@api.post(
-    "/Search", response={200: dict, 201: SearchResponseSchema, 404: NotFoundSchema}
-)
+@api.post("/Search", response={200: dict, 201: SearchResponseSchema, 404: NotFoundSchema})
 def search_endpoint(
     request: str, payload: SearchRequest, authorization: str = Header(None)
 ):
