@@ -51,22 +51,22 @@ from .models import (
     Job,
 )
 from .modules.AiModule import GenerateResponse
-from .modules.HelperClasses.ThreadsHelper import ThreadHelper
-from .modules.HelperClasses.TextsByPrefs import TextsByPrefs
-from .modules.HelperClasses.ShareQuestionHelper import ShareQuestionHelper
-from .modules.HelperClasses.TokenVerificationHelper import TokenVerificationHelper
-from .modules.HelperClasses.UserActivitys import (
+from .modules.helperClasses.threadsHelper import ThreadHelper
+from .modules.helperClasses.textsByPrefs import TextsByPrefs
+from .modules.helperClasses.shareQuestionHelper import ShareQuestionHelper
+from .modules.helperClasses.tokenVerificationHelper import TokenVerificationHelper
+from .modules.helperClasses.userActivitys import (
     get_user_from_token,
     create_custom_token,
     perform_search,
 )
-from .modules.HelperClasses.Report import ReportReciever
-from .modules.HelperClasses.UserPrefsUpvotes import (
+from .modules.helperClasses.report import ReportReciever
+from .modules.helperClasses.userPrefsUpvotes import (
     handle_thread_vote,
     handle_comment_vote,
     handle_shared_vote,
 )
-from .modules.HelperClasses.UserProfileLogin import (
+from .modules.helperClasses.userProfileLogin import (
     handle_existing_user,
     create_new_user,
 )
@@ -125,10 +125,7 @@ def get_texts_for_user(request, authorization: str = Header(None)):
 
 
 # specific text by id
-@api.get(
-    "/Texts/Id/{thread_id}",
-    response={201: List[ThreadResponseSchema], 404: NotFoundSchema},
-)
+@api.get("/Texts/Id/{thread_id}",response={201: List[ThreadResponseSchema], 404: NotFoundSchema})
 def get_texts_for_user(request, thread_id, authorization: str = Header(None)):
     try:
 
@@ -145,10 +142,7 @@ def get_texts_for_user(request, thread_id, authorization: str = Header(None)):
 
 
 # get all texts with a specific tag
-@api.get(
-    "/Texts/Tag/{tag_name}",
-    response={201: List[ThreadResponseSchema], 404: NotFoundSchema},
-)
+@api.get("/Texts/Tag/{tag_name}",response={201: List[ThreadResponseSchema], 404: NotFoundSchema})
 def get_texts_by_tag(request, tag_name, authorization: str = Header(None)):
     try:
 
@@ -255,10 +249,7 @@ def get_image(request, payload: ImagePayload, authorization: str = Header(None))
         return 404, {"success": False, "message": str(e)}
 
 # Update a specific text
-@api.post(
-    "/TextUpdate",
-    response={201: ThreadResponseSchema, 403: NotFoundSchema, 404: NotFoundSchema},
-)
+@api.post("/TextUpdate",response={201: ThreadResponseSchema, 403: NotFoundSchema, 404: NotFoundSchema})
 def update_text(
     request,
     thread_id: int,
@@ -316,10 +307,7 @@ def update_text(
 
 
 #get important information for a job group
-@api.get(
-    "/ImportantInformation/{job_group}",
-    response={201: List[ImportandResponseSchema], 404: NotFoundSchema},
-)
+@api.get("/ImportantInformation/{job_group}",response={201: List[ImportandResponseSchema], 404: NotFoundSchema})
 def get_importend_by_job(request, job_group, authorization: str = Header(None)):
     try:
         user = get_user_from_token(authorization)
@@ -418,10 +406,7 @@ def delete_text(request, thread_id: int, authorization: str = Header(None)):
 
 
 # Share, delet and get Questions
-@api.post(
-    "/ShareQuestion",
-    response={200: dict, 201: SharedQuestionResponseSchema, 404: NotFoundSchema},
-)
+@api.post("/ShareQuestion",response={200: dict, 201: SharedQuestionResponseSchema, 404: NotFoundSchema})
 def share_question(
     request, payload: CreateSharedQuestionSchema, authorization: str = Header(None)
 ):
@@ -437,10 +422,7 @@ def share_question(
         return 404, {"success": False, "message": str(e)}
 
 # Get shared questions for the user
-@api.get(
-    "/QuestionsShared",
-    response={201: List[SharedQuestionResponseSchema], 404: NotFoundSchema},
-)
+@api.get("/QuestionsShared",response={201: List[SharedQuestionResponseSchema], 404: NotFoundSchema})
 def get_shared_questions_by_thread(request, authorization: str = Header(None)):
     try:
         user = get_user_from_token(authorization)
@@ -455,10 +437,7 @@ def get_shared_questions_by_thread(request, authorization: str = Header(None)):
 
 
 # get all questions based on thread id
-@api.get(
-    "/SharedQuestions/Thread/{id_thread}",
-    response={201: List[SharedQuestionResponseSchema], 404: NotFoundSchema},
-)
+@api.get("/SharedQuestions/Thread/{id_thread}",response={201: List[SharedQuestionResponseSchema], 404: NotFoundSchema})
 def get_shared_questions_by_thread(
     request, id_thread: int, authorization: str = Header(None)
 ):
@@ -476,9 +455,7 @@ def get_shared_questions_by_thread(
 
 
 # delete shared question
-@api.delete(
-    "/ManageSharedQuestion/{question_id}", response={204: dict, 404: NotFoundSchema}
-)
+@api.delete("/ManageSharedQuestion/{question_id}", response={204: dict, 404: NotFoundSchema})
 def delete_shared_question(
     request, question_id: int, authorization: str = Header(None)
 ):
@@ -495,9 +472,7 @@ def delete_shared_question(
 
 
 # Token veryfizierung
-@api.post(
-    "/TokenVerifyLoginCreate", response={200: dict, 201: str, 404: NotFoundSchema}
-)
+@api.post("/TokenVerifyLoginCreate", response={200: dict, 201: str, 404: NotFoundSchema})
 def verify_token(request, payload: GoogleVerificationSchema):
     try:
         return TokenVerificationHelper.verify_and_create_user(payload)
@@ -507,9 +482,7 @@ def verify_token(request, payload: GoogleVerificationSchema):
         return 404, {"success": False, "message": str(e)}
 
 
-@api.post(
-    "/CreateOrLoginUserWithMail", response={201: dict, 200: dict, 404: NotFoundSchema}
-)
+@api.post("/CreateOrLoginUserWithMail", response={201: dict, 200: dict, 404: NotFoundSchema})
 def create_user(
     request, payload: Form[CreateUserSchema], file: UploadedFile = File(None)
 ):
@@ -538,9 +511,7 @@ def create_user(
 
 
 # AI gens quiz
-@api.get(
-    "/Ai/GenerateQuiz/{thread_id}/{language}", response={200: dict, 404: NotFoundSchema}
-)
+@api.get("/Ai/GenerateQuiz/{thread_id}/{language}", response={200: dict, 404: NotFoundSchema})
 def generate_quiz(
     request, thread_id: int, language: str, authorization: str = Header(None)
 ):
@@ -569,10 +540,7 @@ def generate_quiz(
 
 
 # AI correcting Questions and answers
-@api.post(
-    "/Ai/CheckQuestions/{thread_id}/{language}",
-    response={200: dict, 404: NotFoundSchema},
-)
+@api.post("/Ai/CheckQuestions/{thread_id}/{language}",response={200: dict, 404: NotFoundSchema})
 def check_answers(
     request,
     thread_id: int,
@@ -926,9 +894,7 @@ def report_content(request, payload: ReportPayload, authorization: str = Header(
 #         "comments": false
 #     }
 # }
-@api.post(
-    "/Search", response={200: dict, 201: SearchResponseSchema, 404: NotFoundSchema}
-)
+@api.post("/Search", response={200: dict, 201: SearchResponseSchema, 404: NotFoundSchema})
 def search_endpoint(
     request: str, payload: SearchRequest, authorization: str = Header(None)
 ):
@@ -958,9 +924,7 @@ def search_endpoint(
         return 404, {"message": f"Failure: {str(e)}", "success": False}
 
 
-@api.post(
-    "/Users/Find", response={200: dict, 201: PublicUserResponse, 404: NotFoundSchema}
-)
+@api.post("/Users/Find", response={200: dict, 201: PublicUserResponse, 404: NotFoundSchema})
 def get_user_from_username(
     request: str, payload: UserRequest, authorization: str = Header(None)
 ):
@@ -1116,10 +1080,7 @@ def create_user(request, details: Form[UserDetails], file: UploadedFile = File(.
 
 
 # comments
-@api.post(
-    "/Threads/{thread_id}/Comment",
-    response={201: CommentResponseSchema, 404: NotFoundSchema},
-)
+@api.post("/Threads/{thread_id}/Comment",response={201: CommentResponseSchema, 404: NotFoundSchema})
 def add_comment(
     request,
     thread_id: int,
@@ -1150,10 +1111,7 @@ def add_comment(
         return 404, {"message": f"Failure: {str(e)}", "success": False}
 
 
-@api.get(
-    "/Threads/{thread_id}/ShowComments",
-    response={201: List[CommentResponseSchema], 404: NotFoundSchema},
-)
+@api.get("/Threads/{thread_id}/ShowComments",response={201: List[CommentResponseSchema], 404: NotFoundSchema})
 def get_comments(request, thread_id: int, authorization: str = Header(None)):
     try:
         user = get_user_from_token(authorization)
@@ -1178,10 +1136,7 @@ def get_comments(request, thread_id: int, authorization: str = Header(None)):
         return 404, {"message": f"Failure: {str(e)}", "success": False}
 
 
-@api.put(
-    "/EditComments/{comment_id}",
-    response={201: CommentResponseSchema, 404: NotFoundSchema},
-)
+@api.put("/EditComments/{comment_id}",response={201: CommentResponseSchema, 404: NotFoundSchema})
 def edit_comment(
     request,
     comment_id: int,
