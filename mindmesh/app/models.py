@@ -10,6 +10,7 @@ import os
 from .modules.aiModule import GenerateResponse
 from django.utils import timezone
 
+
 class CompanyProfile(models.Model):
     name = models.TextField()
     interests = models.TextField()
@@ -196,6 +197,9 @@ class ImportantInformation(models.Model):
     class Meta:
         ordering = ['id']
 
+    def __str__(self):
+        return f"{self.information[:50]} from {self.informationFrom.titel}"
+
     def informationFrom_str(self):
         returnString = ""
         thread = self.informationFrom
@@ -224,7 +228,7 @@ class Job(models.Model):
 
         for info in important_info:
             link = reverse("admin:%s_%s_change" % (info._meta.app_label, info._meta.model_name), args=[info.pk])
-            returnString += f'<a href="{link}">{info.information}</a><br>'
+            returnString += f'<a href="{link}">{str(info)}</a><br>'
         return mark_safe(returnString)
     
     ImportantInformations_str.short_description = 'Important Informations'
