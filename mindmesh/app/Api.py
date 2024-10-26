@@ -796,26 +796,35 @@ def summarize_ai(
 
 
 # Funktion for data creation
-@api.post("/Ai/SummarizeAndTag/{language}", response={200: dict, 404: NotFoundSchema})
+@api.post("/Ai/SummarizeAndTag/{language}", response={200: dict, 400: dict, 401: dict, 500: dict})
 def summariezeandtag(
-    request, language, payload: TagGivingSchema, authorization: str = Header(None)
+    request, language: str, payload: TagGivingSchema, authorization: str = Header(None)
 ):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
+    logger.info(f"User {user.id} is summarizing and tagging text in {language}")
+
     try:
-        user = get_user_from_token(authorization)
-        if user is None:
-            return 404, {"success": False, "message": "User not found"}
         tags_list = list(Tag.objects.values_list("name", flat=True))
-        logger.info("Summarizing and tagging text")
+        
+        logger.info("Generating summary and tags for the provided content")
         generate_response = GenerateResponse()
+        
         result = generate_response.summarieze_tags(
             payload.content, payload.titel, language, tags_list
         )
 
-        return 200, result
+        logger.info("Successfully summarized and tagged the text")
+        return 200, {"success": True, "data": result}
 
+    except ValueError as ve:
+        logger.error(f"Value error occurred: {ve}")
+        return 400, {"success": False, "message": "Invalid input data"}
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error while summarizing and tagging for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # Preference management

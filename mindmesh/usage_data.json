@@ -46,6 +46,11 @@
                     "prompt_token_count": 100,
                     "candidates_token_count": 36,
                     "total_token_count": 136
+                },
+                {
+                    "prompt_token_count": 278,
+                    "candidates_token_count": 131,
+                    "total_token_count": 409
                 }
             ],
             "errors": 0
@@ -61,6 +66,11 @@
                     "prompt_token_count": 243,
                     "candidates_token_count": 87,
                     "total_token_count": 330
+                },
+                {
+                    "prompt_token_count": 278,
+                    "candidates_token_count": 124,
+                    "total_token_count": 402
                 }
             ],
             "errors": 0
