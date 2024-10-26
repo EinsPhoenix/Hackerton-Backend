@@ -867,34 +867,22 @@ def get_user_prefs(request, authorization: str = Header(None)):
 
 
 # get or fill tags
-@api.get("/Tags", response={200: dict, 201: str, 404: NotFoundSchema})
+@api.get("/Tags", response={200: dict, 401: dict, 500: dict})
 def filldatawithtags(request, authorization: str = Header(None)):
-    try:
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
+    logger.info(f"User {user.username} requested to fetch tags.")
+
+    try:
         tags_data = {
             "Tags": [
-                "Technology",
-                "Science",
-                "Music",
-                "Culture",
-                "Sports",
-                "Movies and Series",
-                "Education",
-                "Literature",
-                "History",
-                "Travel",
-                "Nature and Environment",
-                "Fashion",
-                "Culinary",
-                "Psychology",
-                "Finance",
-                "Space Exploration",
-                "Gaming",
-                "Creativity and Design",
-                "Art",
+                "Technology", "Science", "Music", "Culture", "Sports",
+                "Movies and Series", "Education", "Literature", "History",
+                "Travel", "Nature and Environment", "Fashion", "Culinary",
+                "Psychology", "Finance", "Space Exploration", "Gaming",
+                "Creativity and Design", "Art",
             ]
         }
 
@@ -903,11 +891,14 @@ def filldatawithtags(request, authorization: str = Header(None)):
 
         all_tags = Tag.objects.all()
 
-        return {"success": True, "tags": [tag.name for tag in all_tags]}
+        return {
+            "success": True,
+            "tags": [tag.name for tag in all_tags],
+        }
 
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Error occurred while fetching tags for user {user.username}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # delete one specific user
