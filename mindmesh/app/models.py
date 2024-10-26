@@ -556,14 +556,14 @@ class ReportModel(models.Model):
             returnString = f'<a href="{link}">{user.username}</a>'
         return mark_safe(returnString)
     
-    def content_type_str(self):
-        returnString = ""
-        content_type = self.content_type
+    # def content_type_str(self):
+    #     returnString = ""
+    #     content_type = self.content_type
 
-        if content_type:
-            link = reverse("admin:%s_%s_change" % (content_type._meta.app_label, content_type._meta.model_name), args=[content_type.pk])
-            returnString = f'<a href="{link}">{content_type.model}</a>'
-        return mark_safe(returnString)
+    #     if content_type:
+    #         link = reverse("admin:%s_%s_change" % (content_type._meta.app_label, content_type._meta.model_name), args=[content_type.pk])
+    #         returnString = f'<a href="{link}">{content_type.model}</a>'
+    #     return mark_safe(returnString)
     
     def reported_object_str(self):
         returnString = ""
@@ -577,8 +577,8 @@ class ReportModel(models.Model):
     reported_by_str.short_description = 'Reported by'
     reported_by_str.admin_order_field = 'reported_by'
 
-    content_type_str.short_description = 'Content Type'
-    content_type_str.admin_order_field = 'content_type'
+    # content_type_str.short_description = 'Content Type'
+    # content_type_str.admin_order_field = 'content_type'
 
     reported_object_str.short_description = 'Reported Object'
     reported_object_str.admin_order_field = 'reported_object'
