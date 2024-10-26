@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 import os
-from .modules.AiModule import GenerateResponse
+from .modules.aiModule import GenerateResponse
 from django.utils import timezone
 
 class CompanyProfile(models.Model):
