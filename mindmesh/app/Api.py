@@ -29,7 +29,7 @@ from google.auth.transport import requests as google_requests
 # Drittanbieter-Bibliotheken
 from ninja import NinjaAPI, Schema, UploadedFile, Form, File, Header
 from ninja.errors import HttpError
-from typing import List
+from typing import List, Optional
 from fastapi import HTTPException
 from django.db.models import Q
 
@@ -107,93 +107,93 @@ logger = logging.getLogger(__name__)
 
 
 # texts based on prefs
-@api.get("/Texts", response={201: List[ThreadResponseSchema], 404: NotFoundSchema})
+@api.get("/Texts", response={200: List[ThreadResponseSchema], 401: dict, 404: NotFoundSchema, 500: dict})
 def get_texts_for_user(request, authorization: str = Header(None)):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
     try:
-
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
         user_pref_getter = TextsByPrefs(user)
-        print(1)
         threads = user_pref_getter.get_weighted_threads(30)
-        print(2)
 
-        return 201, [
+        return 200, [
             ThreadHelper.format_thread_response(thread, request) for thread in threads
         ]
-
+        
+    except Http404:
+        return 404, {"success": False, "message": "Threads not found for the user."}
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Error occurred while fetching threads for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred."}
 
 
 # specific text by id
-@api.get(
-    "/Texts/Id/{thread_id}",
-    response={201: List[ThreadResponseSchema], 404: NotFoundSchema},
-)
-def get_texts_for_user(request, thread_id, authorization: str = Header(None)):
+@api.get("/Texts/Id/{thread_id}", response={200: List[ThreadResponseSchema], 401: dict, 404: NotFoundSchema, 500: dict})
+def get_texts_for_user(request, thread_id: int, authorization: str = Header(None)):
+    # Check user authorization
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
     try:
-
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
         thread = get_object_or_404(Thread, id_thread=thread_id)
-
-        return 201, [ThreadHelper.format_thread_response(thread, request)]
-
+        formatted_response = ThreadHelper.format_thread_response(thread, request)
+        
+        return 200, [formatted_response]
+        
+    except Http404:
+        return 404, {"success": False, "message": "Thread not found"}
     except Exception as e:
-        logger.error(f"Error occurred while fetching thread: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while fetching thread {thread_id} for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # get all texts with a specific tag
-@api.get(
-    "/Texts/Tag/{tag_name}",
-    response={201: List[ThreadResponseSchema], 404: NotFoundSchema},
-)
-def get_texts_by_tag(request, tag_name, authorization: str = Header(None)):
-    try:
+@api.get("/Texts/Tag/{tag_name}", response={200: List[ThreadResponseSchema], 401: dict, 404: NotFoundSchema, 500: dict})
+def get_texts_by_tag(request, tag_name: str, authorization: str = Header(None)):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
+    try:
         tag = get_object_or_404(Tag, name=tag_name)
 
         main_threads = Thread.objects.filter(main_tag=tag)
         subtag_threads = Thread.objects.filter(subtags=tag)
 
         threads = list(main_threads) + list(subtag_threads)
-
-        return 201, [
+        formatted_response = [
             ThreadHelper.format_thread_response(thread, request) for thread in threads
         ]
+        
+        return 200, formatted_response
 
+    except Http404:
+        return 404, {"success": False, "message": f"Tag '{tag_name}' not found"}
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while fetching threads by tag '{tag_name}' for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # new text add
-@api.post("/AddNewText", response={201: ThreadResponseSchema, 404: NotFoundSchema})
+@api.post("/AddNewText", response={201: ThreadResponseSchema, 401: dict, 400: dict, 500: dict})
 def add_new_text(
     request,
     payload: Form[CreateThreadSchema],
-    file: UploadedFile = File(None),
+    file: Optional[UploadedFile] = File(None),
     authorization: str = Header(None),
 ):
-    try:
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
+    try:
         main_tag = get_object_or_404(Tag, name=payload.main_tag)
 
         image_instance, image_url = ThreadHelper.handle_image_upload(file, user)
 
         with transaction.atomic():
-
             new_thread = ThreadHelper.create_thread(
                 payload, user, main_tag, image_instance
             )
@@ -215,33 +215,36 @@ def add_new_text(
         return 201, response_data
 
     except ValueError as e:
-        return 404, {"success": False, "message": str(e)}
+        logger.warning(f"Validation error while adding new text for user {user.id}: {e}")
+        return 400, {"success": False, "message": str(e)}
+    except Http404:
+        return 404, {"success": False, "message": "Tag not found"}
     except Exception as e:
-        logger.error(f"Error occurred while adding new text: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while adding new text for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 # Get Image for profile or thread
-@api.post("/GetImages", response={201: ImageResponseSchema, 404: NotFoundSchema})
+@api.post("/GetImages", response={201: ImageResponseSchema, 401: dict, 400: dict, 404: NotFoundSchema, 500: dict})
 def get_image(request, payload: ImagePayload, authorization: str = Header(None)):
-    try:
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
+    try:
         if payload.content_type == "thread":
             object_from_id = get_object_or_404(Thread, id_thread=payload.object_id)
         elif payload.content_type == "userpicture":
             userProf = get_object_or_404(User, id=payload.object_id)
             object_from_id = get_object_or_404(UserProfile, user=userProf)
         else:
-            return 404, {"success": False, "message": str(e)}
+            return 400, {"success": False, "message": f"Invalid content type: {payload.content_type}"}
 
         image_instance = get_object_or_404(
             UploadedImage, image_id=object_from_id.image_url.image_id
         )
 
         if not image_instance.image:
-            return 404, {"success": False, "message": str(e)}
+            return 404, {"success": False, "message": "Image not found"}
 
         image_url = request.build_absolute_uri(image_instance.image.url)
 
@@ -254,15 +257,17 @@ def get_image(request, payload: ImagePayload, authorization: str = Header(None))
 
         return 201, response_data
 
+    except Http404:
+        return 404, {"success": False, "message": "Requested object or image not found"}
+    except ValueError as e:
+        logger.warning(f"Invalid payload content type: {payload.content_type} for user {user.id}")
+        return 400, {"success": False, "message": str(e)}
     except Exception as e:
-        logger.error(f"Error fetching image: {str(e)}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error fetching image for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 # Update a specific text
-@api.post(
-    "/TextUpdate",
-    response={201: ThreadResponseSchema, 403: NotFoundSchema, 404: NotFoundSchema},
-)
+@api.post("/TextUpdate/{thread_id}", response={201: ThreadResponseSchema, 401: dict, 403: dict, 400: dict, 404: dict, 500: dict})
 def update_text(
     request,
     thread_id: int,
@@ -270,11 +275,11 @@ def update_text(
     file: UploadedFile = File(None),
     authorization: str = Header(None),
 ):
-    try:
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
+    try:
         thread = get_object_or_404(Thread, id_thread=thread_id)
 
         if thread.created_by != user:
@@ -295,46 +300,40 @@ def update_text(
             if file:
                 try:
                     ThreadHelper.delete_existing_image(thread)
-
                     new_image_instance, _ = ThreadHelper.handle_image_upload(file, user)
                     thread.image_url = new_image_instance
                 except Exception as e:
-                    return 400, {"success": False, "message": str(e)}
+                    logger.error(f"File upload error for thread {thread_id}: {e}")
+                    return 400, {"success": False, "message": f"File upload failed: {str(e)}"}
 
             thread.save()
-
             response_data = ThreadHelper.format_thread_response(thread, request)
 
         return 201, response_data
 
     except ValueError as e:
-        logger.error(f"Validation error occurred: {e}")
+        logger.warning(f"Validation error for thread {thread_id}: {e}")
         return 400, {"success": False, "message": str(e)}
-    except Thread.DoesNotExist:
-        return 404, {"success": False, "message": "Thread not found"}
-    except Tag.DoesNotExist:
-        return 404, {"success": False, "message": "Tag not found"}
+    except Http404 as e:
+        logger.error(f"Resource not found: {e}")
+        return 404, {"success": False, "message": str(e)}
     except Exception as e:
-        logger.error(f"Unexpected error occurred while updating the thread: {e}")
-        return 404, {"success": False, "message": "An unexpected error occurred"}
+        logger.error(f"Unexpected error occurred while updating thread {thread_id} for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 #get important information for a job group
-@api.get(
-    "/ImportantInformation/{job_group}",
-    response={201: List[ImportandResponseSchema], 404: NotFoundSchema},
-)
-def get_importend_by_job(request, job_group, authorization: str = Header(None)):
-    try:
-        user = get_user_from_token(authorization)
-        if user is None:
-            return 404, {"success": False, "message": "User not found"}
+@api.get("/ImportantInformation/{job_group}", response={201: List[ImportandResponseSchema], 401: dict, 404: dict, 500: dict})
+def get_important_by_job(request, job_group: str, authorization: str = Header(None)):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
+    try:
         job_group_obj = Job.objects.filter(name=job_group).first()
         if not job_group_obj:
             return 404, {"success": False, "message": "Job group not found"}
 
-        # Get important information associated with the job group
         important_infos = (
             ImportantInformation.objects.filter(
                 id__in=job_group_obj.ImportantInformations.values_list("id", flat=True)
@@ -343,26 +342,28 @@ def get_importend_by_job(request, job_group, authorization: str = Header(None)):
             .prefetch_related("informationFrom")
         )
 
-        response_data = []
-        for info in important_infos:
-            response_data.append(
-                {
-                    "thread_id": info.informationFrom.id_thread,
-                    "title": info.informationFrom.titel,
-                    "summary": info.informationFrom.content_summary,
-                    "important_information": info.information,
-                }
-            )
+        response_data = [
+            {
+                "thread_id": info.informationFrom.id_thread,
+                "title": info.informationFrom.titel,
+                "summary": info.informationFrom.content_summary,
+                "important_information": info.information,
+            }
+            for info in important_infos
+        ]
 
         return 201, response_data
 
-    except Exception as e:
-        logger.error(f"Error occurred while fetching important information: {e}")
+    except Http404 as e:
+        logger.warning(f"Resource not found: {e}")
         return 404, {"success": False, "message": str(e)}
+    except Exception as e:
+        logger.error(f"Unexpected error occurred while fetching important information for job group {job_group} by user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # upvote everything
-@api.post("/Upvote", response={200: dict, 201: dict, 404: NotFoundSchema})
+@api.post("/Upvote", response={200: dict, 201: dict, 401: dict, 404: dict, 500: dict})
 def upvote_text(
     request, payload: UpvoteTypeResponse, authorization: str = Header(None)
 ):
@@ -397,86 +398,104 @@ def upvote_text(
 
 
 # delete text
-@api.delete("/Text/{thread_id}", response={204: None, 404: NotFoundSchema})
+@api.delete("/Text/{thread_id}", response={204: None, 401: dict, 403: dict, 404: dict, 500: dict})
 def delete_text(request, thread_id: int, authorization: str = Header(None)):
-    try:
-        user = get_user_from_token(authorization)
-        if user == None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
+    try:
         thread = ThreadHelper.get_thread_by_id(thread_id)
+        if thread is None:
+            return 404, {"success": False, "message": "Thread not found"}
 
         if thread.created_by != user:
-            return 404, None
+            return 403, {"success": False, "message": "Forbidden: Not authorized to delete this thread"}
 
-        try:
-            thread.delete()
-            return 204, None
-        except Exception as e:
-            logger.error(f"Error deleting thread: {str(e)}")
-            raise HttpError(404, "Error deleting thread")
+        thread.delete()
+        return 204, None
+
+    except Http404:
+        logger.warning(f"Thread with ID '{thread_id}' not found for deletion")
+        return 404, {"success": False, "message": "Thread not found"}
 
     except Exception as e:
-        logger.error(f"Error occurred while processing request: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while deleting thread {thread_id} by user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # Share, delet and get Questions
-@api.post(
-    "/ShareQuestion",
-    response={200: dict, 201: SharedQuestionResponseSchema, 404: NotFoundSchema},
-)
+@api.post("/ShareQuestion", response={200: dict, 201: SharedQuestionResponseSchema, 401: dict, 404: dict, 500: dict})
 def share_question(
     request, payload: CreateSharedQuestionSchema, authorization: str = Header(None)
 ):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
     try:
-        user = get_user_from_token(authorization)
         response_data = ShareQuestionHelper.create_shared_question(user, payload)
         return 201, response_data
 
+    except Http404:
+        logger.warning(f"Question not found or invalid data for user {user.id}")
+        return 404, {"success": False, "message": "Question not found"}
+
     except HttpError as e:
+        logger.error(f"HttpError occurred: {e.status_code}, {str(e)}")
         return e.status_code, {"success": False, "message": str(e)}
+
     except Exception as e:
-        logger.error(f"Error occurred while fetching questions: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while sharing question for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 # Get shared questions for the user
-@api.get(
-    "/QuestionsShared",
-    response={201: List[SharedQuestionResponseSchema], 404: NotFoundSchema},
-)
+@api.get("/QuestionsShared", response={200: List[SharedQuestionResponseSchema], 401: dict, 404: dict, 500: dict})
 def get_shared_questions_by_thread(request, authorization: str = Header(None)):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
     try:
-        user = get_user_from_token(authorization)
         response_data = ShareQuestionHelper.get_shared_questions_by_user(user)
-        return 201, response_data
+        return 200, response_data
+
+    except Http404:
+        logger.warning(f"No shared questions found for user {user.id}")
+        return 404, {"success": False, "message": "No shared questions found"}
 
     except HttpError as e:
+        logger.error(f"HttpError occurred while fetching shared questions for user {user.id}: {str(e)}")
         return e.status_code, {"success": False, "message": str(e)}
+
     except Exception as e:
-        logger.error(f"Error occurred while fetching questions: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while fetching shared questions for user {user.id}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # get all questions based on thread id
-@api.get(
-    "/SharedQuestions/Thread/{id_thread}",
-    response={201: List[SharedQuestionResponseSchema], 404: NotFoundSchema},
-)
+@api.get("/SharedQuestions/Thread/{id_thread}", response={200: List[SharedQuestionResponseSchema], 401: dict, 404: dict, 500: dict})
 def get_shared_questions_by_thread(
     request, id_thread: int, authorization: str = Header(None)
 ):
-    try:
-        user = get_user_from_token(authorization)
-        if user is None:
-            return 404, {"success": False, "message": "User not found"}
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
 
+    try:
         response_data = ShareQuestionHelper.get_shared_questions_by_thread(id_thread)
-        return 201, response_data
+        if not response_data:
+            return 404, {"success": False, "message": "No shared questions found for this thread"}
+
+        return 200, response_data
+
+    except Http404:
+        logger.warning(f"No shared questions found for thread ID {id_thread} for user {user.id}")
+        return 404, {"success": False, "message": "No shared questions found"}
 
     except Exception as e:
-        logger.error(f"Error occurred while fetching threads: {e}")
-        return 404, {"success": False, "message": str(e)}
+        logger.error(f"Unexpected error occurred while fetching shared questions for thread ID {id_thread}: {e}")
+        return 500, {"success": False, "message": "An unexpected error occurred"}
 
 
 # delete shared question
