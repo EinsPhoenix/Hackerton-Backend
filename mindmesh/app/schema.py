@@ -223,3 +223,10 @@ class GoogleVerificationSchema(Schema):
 class CommentCreateSchema(Schema):
     content: str
 
+class JobListResponse(Schema):
+    jobs: list[str]  
+
+
+class BioAndJobSchema(Schema):
+    jobname: Optional[str] = None 
+    bio: Optional[str] = None      

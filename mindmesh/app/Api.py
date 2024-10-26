@@ -11,7 +11,7 @@ import requests
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import transaction
 from django.db.models import Max
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -97,6 +97,8 @@ from .schema import (
     CommentCreateSchema,
     GoogleVerificationSchema,
     ImportandResponseSchema,
+    BioAndJobSchema,
+    JobListResponse
 )
 
 # Initialisierung der API
@@ -1280,3 +1282,36 @@ def click_thread(request, thread_id: int, authorization: str = Header(None)):
     
     except Exception as e:
         return 404, {"message": f"Failure: {str(e)}", "success": False}
+    
+@api.get("/Job/List", response={200: JobListResponse, 401: dict, 404: NotFoundSchema})
+def job_list(request, authorization: str = Header(None)):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
+    jobs = Job.objects.values_list('name', flat=True)
+    return 200, {"jobs": list(jobs)}
+    
+    
+    
+@api.post("/Job", response={201: dict, 401: dict, 404: NotFoundSchema})
+def add_job_bio(request, payload: BioAndJobSchema, authorization: str = Header(None)):
+    user = get_user_from_token(authorization)
+    if user is None:
+        return 401, {"success": False, "message": "Unauthorized: User not found"}
+
+    user_profile, created = UserProfile.objects.get_or_create(user=user)
+
+    if payload.jobname:
+        job = Job.objects.filter(name=payload.jobname).first()
+        if not job:
+            return 404, {"success": False, "message": "Job not found"}
+        user_profile.job = job 
+
+   
+    if payload.bio is not None:  
+        user_profile.bio = payload.bio  
+
+    user_profile.save()
+
+    return 201, {"success": True, "message": "Job and/or bio updated successfully"}
