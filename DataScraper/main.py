@@ -1,36 +1,40 @@
-from ServerInteractions import InitServer, Login, GetSummaryAndTags, AddNewText
+from ServerInteractions import Login, GetSummaryAndTags, AddNewText
 from Grabber import GetPageContent, GetLinksFromCategory
+from random import choice
+from time import perf_counter
+from datetime import timedelta
 
 def main():
-    gateway = "http://127.0.0.1:8000/"
-    # TODO: Hier muss ich noch den Pfad für den server angeben
-    # serverProcess = InitServer(path)
+    start = perf_counter()
+    gateway = "http://10.240.167.215:8000/"
+    usernames = ["Noah", "Jan", "David", "Marvin", "Tobias", "Justin", "Halil"]
+    tokens = []
+    for username in usernames:
+        tokens.append(Login(gateway, username))
     with open("createdTexts.txt", "r") as file:
         createdTexts = file.read().split("\n")
     with open("categories.txt", "r") as file:
         categories = file.read().split("\n")
     with open("createdTexts.txt", "a") as file:
-        token = Login(gateway)
+        i = 0
         for category in categories:
             links = GetLinksFromCategory(category)
-            count = 0
             for link in links:
+                token = choice(tokens)
                 if link not in createdTexts:
                     titel, content = GetPageContent(f"https://de.wikipedia.org{link}")
                     summary, mainTag, subTags = GetSummaryAndTags(gateway, titel, content, token)
-                    response = AddNewText(titel, content, summary, mainTag, subTags, token)
-                    if response.status_code == 201:
-                        createdTexts.append(link)
-                        file.write(f"{link}\n")
-                        print(f"{link} / Words: {len(content.split(" "))}")
-                    else:
-                        raise Exception(response.status_code, response.text)
-                    count += 1
-                    if count == 1:
-                        break
-    # serverProcess.join()
+                    if summary:
+                        response = AddNewText(gateway, titel, content, summary, mainTag, subTags, token)
+                        if response.status_code == 201:
+                            createdTexts.append(link)
+                            file.write(f"{link}\n")
+                            i += 1
+                        else:
+                            if response.status_code != 404:
+                                raise Exception(response.status_code, response.text)
+                    if i % 100 == 0:
+                        print(f"Links: {i} / Total runtime: {timedelta(seconds=perf_counter() - start)}")
 
-# Run command:
-    # py .\main.py -p "C:\Users\Jan\Documents\Projects\GitRepos\QuizGen\manage.py" -cp "categories.txt"
 if __name__ == "__main__":
     main()

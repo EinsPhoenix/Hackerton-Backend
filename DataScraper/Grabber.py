@@ -17,7 +17,7 @@ def GetLinksFromCategory(category):
                     links.append(href[1:-1])
                 else:
                     skipFirst = False
-        if len(links) % 199 != 1:
+        if len(links) % 199 != 1 or len(links) == 1:
             return links
         lastSubject = findall(r"[^/]*$", links[-1])[0]
         nextUrl = f"https://de.wikipedia.org/w/index.php?title=Kategorie:{category}&pagefrom={lastSubject}#mw-pages"
@@ -49,9 +49,7 @@ def GetPageContent(url):
                     content += buffer
                     buffer = f"{tag.text}\n"
                 else:
-                    if totalWordCount < 600:
-                        content += buffer
                     break
+    if totalWordCount < 600:
+        content += buffer
     return usefullTags[0].text, content[:-2]
-
-    

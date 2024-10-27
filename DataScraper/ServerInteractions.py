@@ -1,5 +1,4 @@
 from requests import post
-from time import sleep
 from os import system
 from multiprocessing import Process
 
@@ -11,12 +10,12 @@ def InitServer(path):
     serverProcess.start()
     return serverProcess
 
-def Login(gateway):
+def Login(gateway, username):
     url = f"{gateway}api/CreateOrLoginUserWithMail"
     formData = {
-        "username": "Jan",
-        "email": "jan.thomas0506@gmail.com",
-        "password": "Kacke11!"
+        "username": username,
+        "email": f"{username}@gmail.com",
+        "password": "Password123"
     }
     headers = {}
     response = post(url, data=formData, headers=headers)
@@ -33,18 +32,24 @@ def GetSummaryAndTags(gateway, titel, content, token):
     }
     response = post(url, json=jsonData, headers=headers)
     if response.status_code == 200:
-        summary = response.json()["content_summary"]
-        mainTag = response.json()["MainTag"]["MainTag"]
-        subTags = []
-        subTags.append(response.json()["SubTags"][0]["SubTag1"])
-        subTags.append(response.json()["SubTags"][1]["SubTag2"])
-        subTags.append(response.json()["SubTags"][2]["SubTag3"])
+        try:
+            summary = response.json()["data"]["content_summary"]
+            mainTag = response.json()["data"]["MainTag"]["MainTag"]
+            subTags = []
+        except:
+            return "", "", ""
+        try:
+            subTags.append(response.json()["data"]["SubTags"][0]["SubTag1"])
+            subTags.append(response.json()["data"]["SubTags"][1]["SubTag2"])
+            subTags.append(response.json()["data"]["SubTags"][2]["SubTag3"])
+        except:
+            pass
         return summary, mainTag, subTags
     else:
         raise Exception(response.status_code, response.text)
 
-def AddNewText(titel, content, summary, mainTag, subTags, token):
-    url = "http://127.0.0.1:8000/api/AddNewText"
+def AddNewText(gateway, titel, content, summary, mainTag, subTags, token):
+    url = f"{gateway}/api/AddNewText"
     formData = {
         "titel": titel,
         "content": content,
