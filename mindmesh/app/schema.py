@@ -114,21 +114,7 @@ class ReportSchema(Schema):
     reason: str
 
 
-class PublicUserResponse(Schema):
-    username: str
-    user_id: int
-    bio: str
-    job: str
-    importantInfo: List[str]
-    upvoted_threads: List[int]
-    written_threads: List[ThreadSchema]
-    shared_questions: List[SharedQuestionSchema]
-    downvoted_threads: Optional[List[int]] = None
-    upvoted_comments: Optional[List[int]] = None
-    downvoted_comments: Optional[List[int]] = None
-    upvoted_shared_questions: Optional[List[int]] = None
-    downvoted_shared_questions: Optional[List[int]] = None
-    reports: Optional[List[ReportSchema]] = None
+
 
 
 class UserSchema(BaseModel):
@@ -156,6 +142,23 @@ class CommentSchema(BaseModel):
 class ImportantInformationSchema(BaseModel):
     information: str
     created_at: str  # Use string to represent the date
+    
+    
+class PublicUserResponse(Schema):
+    username: str
+    user_id: int
+    bio: str
+    job: str
+    importantInfo: List[ImportantInformationSchema]
+    upvoted_threads: List[ThreadResponseSchema]
+    written_threads: List[ThreadResponseSchema]
+    shared_questions: List[SharedQuestionSchema]
+    downvoted_threads: Optional[List[ThreadResponseSchema]] = None
+    upvoted_comments: Optional[List[int]] = None
+    downvoted_comments: Optional[List[int]] = None
+    upvoted_shared_questions: Optional[List[int]] = None
+    downvoted_shared_questions: Optional[List[int]] = None
+    reports: Optional[List[ReportSchema]] = None
 
 class JobSchema(BaseModel):
     name: str
