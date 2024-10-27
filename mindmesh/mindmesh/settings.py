@@ -6,7 +6,7 @@ SECRET_KEY = 'django-insecure-1#c7^oixo*(-i_ptg%i7g$3@32j(a%#=xk90_zm#l13j%6(3hi
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['192.168.178.74', '93.208.17.86', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.178.74', '93.208.17.86', 'localhost', '127.0.0.1', '10.240.167.215']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -83,8 +83,12 @@ WSGI_APPLICATION = 'mindmesh.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mindmesh',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': '10.240.232.188',
+        'PORT': '5432'
     }
 }
 

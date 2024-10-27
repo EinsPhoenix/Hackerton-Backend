@@ -155,6 +155,7 @@ class GenerateResponse:
 
             - If the answer is correct, simply confirm it: "Your answer was correct."
             - If the answer is incorrect or partially correct, explain why, then provide the correct answer: "Your answer was incorrect. The correct answer is..."
+            - When the answer from the user is "not answered" the answer is incorect! And you have to correct it
 
             Return the results as a JSON object with this structure:
             {{
