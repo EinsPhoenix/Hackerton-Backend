@@ -151,26 +151,16 @@ body {
     opacity: 0.6;
 }
 
-#socialaccount_form > div > div > input {
-    background-color: var(--accent300);
-    color: var(--neutral100);
-}
-
-#socialaccount_form > div > div > input:hover {
-    background-color: var(--accent200);
-    color: var(--neutral100);
-}
-
 #branding > button {
     display: none;
 }
 
-#emailaddress_form > div > div > input {
+.submit-row input[type="submit"] {
     background-color: var(--accent300);
     color: var(--neutral100);
 }
 
-#emailaddress_form > div > div > input:hover {
+.submit-row input[type="submit"]:hover {
     background-color: var(--accent200);
     color: var(--neutral100);
 }
