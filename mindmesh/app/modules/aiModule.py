@@ -19,7 +19,7 @@ class GenerateResponse:
         load_dotenv()
         self.api_keys = [
             os.getenv(f"GOOGLE_API_KEY_{i}")
-            for i in range(1, 17)
+            for i in range(1, 5)
             if os.getenv(f"GOOGLE_API_KEY_{i}")
         ]
 

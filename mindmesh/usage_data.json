@@ -31,6 +31,11 @@
                     "prompt_token_count": 304,
                     "candidates_token_count": 123,
                     "total_token_count": 427
+                },
+                {
+                    "prompt_token_count": 492,
+                    "candidates_token_count": 443,
+                    "total_token_count": 935
                 }
             ],
             "errors": 0
@@ -73,7 +78,7 @@
                     "total_token_count": 402
                 }
             ],
-            "errors": 0
+            "errors": 1
         },
         "AIzaSyBYjabiJRjEJiFmHBDlR3KP6WZ0xSmJUQw": {
             "anfragen": [
@@ -89,6 +94,26 @@
                 }
             ],
             "errors": 0
+        },
+        "AIzaSyBga8BADa-RBAH8qe232w6y6DWMPU_83So": {
+            "anfragen": [],
+            "errors": 1
+        },
+        "AIzaSyBWrhZR5uyfh6s2yFc5jQ8hexNV9xLUITY": {
+            "anfragen": [],
+            "errors": 1
+        },
+        "AIzaSyArotz3jcuqVX7MRupZxfUcbBTbiI8ubAw": {
+            "anfragen": [],
+            "errors": 1
+        },
+        "AIzaSyB1pkPpdQV4V_G82x-ebv37u8mbl_CnBas": {
+            "anfragen": [],
+            "errors": 1
+        },
+        "AIzaSyDXR6-8aKV_oQqNIjcn7WIX97czNuRZE5w": {
+            "anfragen": [],
+            "errors": 1
         }
     }
 }
