@@ -1033,6 +1033,7 @@ def get_user_from_username(
         user_reports = ReportModel.objects.filter(reported_by=user)
         userprofile = UserProfile.objects.get(user=user)
         job = userprofile.job
+        default_image_url = request.build_absolute_uri('/images/WhatsApp_Bild_2024-10-16_um_20.51.53_8052ce33.jpg')
         important_infos = []
         if job != None:
             important_infos = job.ImportantInformations.all().order_by("-created_at")[
@@ -1055,7 +1056,7 @@ def get_user_from_username(
                         "content_summary": thread.content_summary,
                         "main_tag": thread.main_tag.name,  # assuming Tag has a name attribute
                         "subtags": [tag.name for tag in thread.subtags.all()],
-                        "image_url": thread.image_url.url if thread.image_url else None,
+                        "image_url": request.build_absolute_uri(thread.image_url.image.url) if thread.image_url else default_image_url,
                         "created_at": thread.created_at.isoformat(),
                         "created_by": thread.created_by.username,  # assuming User has a username attribute
                         "upvotes": thread.upvotes,
@@ -1070,7 +1071,7 @@ def get_user_from_username(
                         "content_summary": thread.content_summary,
                         "main_tag": thread.main_tag.name,
                         "subtags": [tag.name for tag in thread.subtags.all()],
-                        "image_url": thread.image_url.url if thread.image_url else None,
+                        "image_url": request.build_absolute_uri(thread.image_url.image.url) if thread.image_url else default_image_url,
                         "created_at": thread.created_at.isoformat(),
                         "created_by": thread.created_by.username,
                         "upvotes": thread.upvotes,
