@@ -151,7 +151,7 @@ class PublicUserResponse(Schema):
     user_id: int
     bio: str
     job: str
-    importantInfo: List[JobSchema]
+    importantInfo: List[ImportantInformationSchema]
     upvoted_threads: List[ThreadResponseSchema]
     written_threads: List[ThreadResponseSchema]
     shared_questions: List[SharedQuestionSchema]
