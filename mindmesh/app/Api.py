@@ -1045,7 +1045,13 @@ def get_user_from_username(
                 "bio": userprofile.bio,
                 "job": job.name if job else None,
                 "importantInfo": [
-                    {"information": info.information, "created_at": info.created_at.isoformat()} for info in important_infos
+                    {
+                        "name": job.name,
+                        "important_information": [
+                            {"information": info.information, "created_at": info.created_at.isoformat()} 
+                            for info in job.ImportantInformations.all()
+                        ]
+                    } for job in userprofile.jobs.all()  # assuming a user profile can have multiple jobs
                 ],
                 "upvoted_threads": [
                     {
@@ -1053,11 +1059,11 @@ def get_user_from_username(
                         "title": thread.titel,
                         "content": thread.content,
                         "content_summary": thread.content_summary,
-                        "main_tag": thread.main_tag.name,  # assuming Tag has a name attribute
+                        "main_tag": thread.main_tag.name,
                         "subtags": [tag.name for tag in thread.subtags.all()],
                         "image_url": thread.image_url.url if thread.image_url else None,
                         "created_at": thread.created_at.isoformat(),
-                        "created_by": thread.created_by.username,  # assuming User has a username attribute
+                        "created_by": thread.created_by.username,
                         "upvotes": thread.upvotes,
                     }
                     for thread in user_activity.upvotedThreads.all()
@@ -1121,6 +1127,7 @@ def get_user_from_username(
                     for report in user_reports
                 ],
             }
+
 
         else:
             user = User.objects.get(username=payload.username)

@@ -143,13 +143,15 @@ class ImportantInformationSchema(BaseModel):
     information: str
     created_at: str  # Use string to represent the date
     
-    
+class JobSchema(BaseModel):
+    name: str
+    important_information: List[ImportantInformationSchema]
 class PublicUserResponse(Schema):
     username: str
     user_id: int
     bio: str
     job: str
-    importantInfo: List[ImportantInformationSchema]
+    importantInfo: List[JobSchema]
     upvoted_threads: List[ThreadResponseSchema]
     written_threads: List[ThreadResponseSchema]
     shared_questions: List[SharedQuestionSchema]
@@ -160,9 +162,7 @@ class PublicUserResponse(Schema):
     downvoted_shared_questions: Optional[List[int]] = None
     reports: Optional[List[ReportSchema]] = None
 
-class JobSchema(BaseModel):
-    name: str
-    important_information: List[ImportantInformationSchema]
+
 
 class SearchFilters(BaseModel):
     user: bool = False
