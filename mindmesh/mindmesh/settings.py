@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'app',
     'allauth',
     'corsheaders',
+    'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
 ]
@@ -87,7 +88,7 @@ DATABASES = {
         'NAME': 'mindmesh',
         'USER': 'postgres',
         'PASSWORD': 'postgres',
-        'HOST': '10.240.232.188',
+        'HOST': 'localhost',
         'PORT': '5432'
     }
 }
