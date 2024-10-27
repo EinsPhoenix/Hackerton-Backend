@@ -1,0 +1,105 @@
+**Projektübersicht**
+=====================
+
+* **Projektname:** MindMesh
+* **Beschreibung:** Eine webbasierte Diskussionsplattform, entwickelt mit Django, um Benutzern die Möglichkeit zu geben, Themen zu teilen, Fragen zu generieren, Fragen zu beantworten zu corregieren und daran zu wachsen. In Zukunft auch Kommentar sektion geplant und es soll möglich sein seine fragen zu teilen.
+
+
+**General Backend Setup**
+=====================
+
+## Step 1: Clone the Repository
+
+- Clone the project into a new folder or update your existing project by navigating to the GitHub repository [here](https://github.com/EinsPhoenix/Hackerton-Backend/tree/develop).
+
+## Step 2: Set Up the Virtual Environment
+
+1. **Navigate to the Project Directory**:
+
+   ```bash
+   cd ./Projectname/
+   ```
+
+2. **Create a Virtual Environment**:
+
+   ```bash
+   python -m venv venv
+   ```
+
+3. **Activate the Virtual Environment**:
+
+   - On **Linux/macOS**:
+
+     ```bash
+     source venv/bin/activate
+     ```
+
+   - On **Windows**:
+
+     ```bash
+     venv\Scripts\activate
+     ```
+
+## Step 3: Install Dependencies
+
+- Install all required dependencies from the `requirements.txt` file:
+
+  ```bash
+  pip install -r requirements.txt
+  ```
+
+
+
+
+## Step 5: Start the Development Server
+
+- Launch the Django development server:
+
+  ```bash
+  python manage.py runserver
+  ```
+
+- Access the server at [http://127.0.0.1:8000/](http://127.0.0.1:8000/) by default.
+
+## Step 6: Go to the admin panel
+- Acces the admin panel[http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
+- create a new company profile
+- create jobs that are availible in your company
+
+**Admin-Interface**
+=====================
+
+### Admin-Login
+* **Name**: winder
+* **password**: winder123
+
+### Model-Übersicht
+
+| **Model** | **Beschreibung** |
+| --- | --- |
+| **UserPreferences** | Benutzerspezifische Einstellungen |
+| **UserProfile** | Erweiterte Benutzerprofile |
+| **Tag** | Kategorisierung von Themen (z.B. Technologie, Kultur) |
+| **Thread** | Diskussions-Themen |
+| **Comments** | Kommentare zu Diskussions-Themen |
+| **SharedQuestion** | Geteilte Fragen innerhalb der Diskussionen |
+| **UserActivity** | Aktivitätsprotokoll für Benutzer |
+| **ReportModel** | Meldungen für unangemessene Inhalte |
+| **Users** | Meldungen für unangemessene Inhalte |
+|**Company profiles**| Company profiles |
+|**job** | Job model|
+
+
+### Admin-Aktionen
+
+#### 1. **Tags für alle Benutzer hinzufügen**
+
+* **Beschreibung:** Fügt eine vordefinierte Liste von Tags hinzu, um die Kategorisierung von Diskussionsthemen zu erleichtern.
+* **Verfügbar in:** Tag-Admin-Interface
+* **Ausführen:** Wählen Sie die Aktion über das Dropdown-Menü in der oberen rechten Ecke des Tag-Übersichtsbereichs.
+
+
+
+
+
+# Now start the Frontend 

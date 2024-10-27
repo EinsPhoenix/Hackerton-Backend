@@ -1039,62 +1039,79 @@ def get_user_from_username(
                 :30
             ]
         if payload.username == user.username:
+            default_image_url = request.build_absolute_uri('/images/WhatsApp_Bild_2024-10-16_um_20.51.53_8052ce33.jpg')
             response_data = {
                 "username": user.username,
                 "user_id": user.id,
                 "bio": userprofile.bio,
                 "job": job.name if job else None,
-                "importantInfo": [info.information for info in important_infos],
-                "upvoted_threads": (
-                    [thread.id_thread for thread in user_activity.upvotedThreads.all()]
-                    if user_activity
-                    else []
-                ),
-                "downvoted_threads": (
-                    [
-                        thread.id_thread
-                        for thread in user_activity.downvotedThreads.all()
-                    ]
-                    if user_activity
-                    else []
-                ),
-                "upvoted_comments": (
-                    [
-                        comment.comment_id
-                        for comment in user_activity.upvotedComments.all()
-                    ]
-                    if user_activity
-                    else []
-                ),
-                "downvoted_comments": (
-                    [
-                        comment.comment_id
-                        for comment in user_activity.downvotedComments.all()
-                    ]
-                    if user_activity
-                    else []
-                ),
-                "upvoted_shared_questions": (
-                    [
-                        question.shared_id
-                        for question in user_activity.upvotedSharedQuestions.all()
-                    ]
-                    if user_activity
-                    else []
-                ),
-                "downvoted_shared_questions": (
-                    [
-                        question.shared_id
-                        for question in user_activity.downvotedSharedQuestions.all()
-                    ]
-                    if user_activity
-                    else []
-                ),
+                "importantInfo": [
+                    {
+                        "name": job.name,
+                        "important_information": [
+                            {"information": info.information, "created_at": info.created_at.isoformat()} 
+                            for info in job.ImportantInformations.all()
+                        ]
+                    } for job in userprofile.jobs.all()  # assuming a user profile can have multiple jobs
+                ],
+                "upvoted_threads": [
+                    {
+                        "id": thread.id_thread,
+                        "title": thread.titel,
+                        "content": thread.content,
+                        "content_summary": thread.content_summary,
+                        "main_tag": thread.main_tag.name,
+                        "subtags": [tag.name for tag in thread.subtags.all()],
+                        "image_url": request.build_absolute_uri(thread.image_url.image.url) if thread.image_url else default_image_url,
+                        "created_at": thread.created_at.isoformat(),
+                        "created_by": thread.created_by.username,
+                        "upvotes": thread.upvotes,
+                    }
+                    for thread in user_activity.upvotedThreads.all()
+                ] if user_activity else [],
+                "downvoted_threads": [
+                    {
+                        "id": thread.id_thread,
+                        "title": thread.titel,
+                        "content": thread.content,
+                        "content_summary": thread.content_summary,
+                        "main_tag": thread.main_tag.name,
+                        "subtags": [tag.name for tag in thread.subtags.all()],
+                        "image_url": request.build_absolute_uri(thread.image_url.image.url) if thread.image_url else default_image_url,
+                        "created_at": thread.created_at.isoformat(),
+                        "created_by": thread.created_by.username,
+                        "upvotes": thread.upvotes,
+                    }
+                    for thread in user_activity.downvotedThreads.all()
+                ] if user_activity else [],
+                "upvoted_comments": [
+                    comment.comment_id
+                    for comment in user_activity.upvotedComments.all()
+                ] if user_activity else [],
+                "downvoted_comments": [
+                    comment.comment_id
+                    for comment in user_activity.downvotedComments.all()
+                ] if user_activity else [],
+                "upvoted_shared_questions": [
+                    question.shared_id
+                    for question in user_activity.upvotedSharedQuestions.all()
+                ] if user_activity else [],
+                "downvoted_shared_questions": [
+                    question.shared_id
+                    for question in user_activity.downvotedSharedQuestions.all()
+                ] if user_activity else [],
                 "written_threads": [
                     {
                         "id": thread.id_thread,
                         "title": thread.titel,
                         "content": thread.content,
+                        "content_summary": thread.content_summary,
+                        "main_tag": thread.main_tag.name,
+                        "subtags": [tag.name for tag in thread.subtags.all()],
+                        "image_url": request.build_absolute_uri(thread.image_url.image.url) if thread.image_url else default_image_url,
+                        "created_at": thread.created_at.isoformat(),
+                        "created_by": thread.created_by.username,
+                        "upvotes": thread.upvotes,
                     }
                     for thread in written_threads
                 ],
@@ -1111,6 +1128,8 @@ def get_user_from_username(
                     for report in user_reports
                 ],
             }
+
+
         else:
             user = User.objects.get(username=payload.username)
             userprofile = UserProfile.objects.get(user=user)
