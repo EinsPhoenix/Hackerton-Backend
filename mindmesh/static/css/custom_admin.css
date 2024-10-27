@@ -15,6 +15,8 @@
     --overlay50: rgba(25, 24, 24, 0.5);
   
     --transparent: rgba(0, 0, 0, 0);
+
+    --selected-row : rgba(244, 70, 231, 0.2);
 }
 
 
@@ -127,4 +129,38 @@ body {
 
 #toggle-nav-sidebar {
     color: var(--accent300);
+}
+
+#nav-sidebar > div.app-auth.module.current-app > table > tbody > tr.current-model {
+    background-color: var(--accent300);
+    opacity: 0.6;
+}
+
+#group_form > div > div > input {
+    background-color: var(--accent300);
+    color: var(--neutral100);
+}
+
+#group_form > div > div > input:hover {
+    background-color: var(--accent200);
+    color: var(--neutral100);
+}
+
+#nav-sidebar > div.app-socialaccount.module.current-app > table > tbody > tr.current-model {
+    background-color: var(--accent300);
+    opacity: 0.6;
+}
+
+#socialaccount_form > div > div > input {
+    background-color: var(--accent300);
+    color: var(--neutral100);
+}
+
+#socialaccount_form > div > div > input:hover {
+    background-color: var(--accent200);
+    color: var(--neutral100);
+}
+
+#branding > button {
+    display: none;
 }
