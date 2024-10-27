@@ -1039,6 +1039,7 @@ def get_user_from_username(
                 :30
             ]
         if payload.username == user.username:
+            default_image_url = request.build_absolute_uri('/images/WhatsApp_Bild_2024-10-16_um_20.51.53_8052ce33.jpg')
             response_data = {
                 "username": user.username,
                 "user_id": user.id,
@@ -1061,7 +1062,7 @@ def get_user_from_username(
                         "content_summary": thread.content_summary,
                         "main_tag": thread.main_tag.name,
                         "subtags": [tag.name for tag in thread.subtags.all()],
-                        "image_url": thread.image_url.url if thread.image_url else None,
+                        "image_url": request.build_absolute_uri(thread.image_url.image.url) if thread.image_url else default_image_url,
                         "created_at": thread.created_at.isoformat(),
                         "created_by": thread.created_by.username,
                         "upvotes": thread.upvotes,
@@ -1076,7 +1077,7 @@ def get_user_from_username(
                         "content_summary": thread.content_summary,
                         "main_tag": thread.main_tag.name,
                         "subtags": [tag.name for tag in thread.subtags.all()],
-                        "image_url": thread.image_url.url if thread.image_url else None,
+                        "image_url": request.build_absolute_uri(thread.image_url.image.url) if thread.image_url else default_image_url,
                         "created_at": thread.created_at.isoformat(),
                         "created_by": thread.created_by.username,
                         "upvotes": thread.upvotes,
@@ -1107,7 +1108,7 @@ def get_user_from_username(
                         "content_summary": thread.content_summary,
                         "main_tag": thread.main_tag.name,
                         "subtags": [tag.name for tag in thread.subtags.all()],
-                        "image_url": thread.image_url.url if thread.image_url else None,
+                        "image_url": request.build_absolute_uri(thread.image_url.image.url) if thread.image_url else default_image_url,
                         "created_at": thread.created_at.isoformat(),
                         "created_by": thread.created_by.username,
                         "upvotes": thread.upvotes,
