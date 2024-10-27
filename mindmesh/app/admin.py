@@ -4,6 +4,14 @@ from django.db import transaction
 from .models import QuizAbsolved, SolvedThreads, UserPreferences, UserProfile, Tag, Thread, Comment, SharedQuestion, UserActivity, ReportModel, SearchRequests, UploadedImage, CompanyProfile, Job, ImportantInformation
 from django.db.models import Q
 
+'''Section Custom Design Admin Panel'''
+
+admin.site.site_header = "Mindmesh Admin"
+admin.site.site_title = "Mindmesh Admin Portal"
+admin.site.index_title = "Welcome to Mindmesh Admin Portal"
+
+'''Custom Design Admin Panel Ends Here'''
+
 
 '''Section for Custom Filters inside the Admin Panel'''
 

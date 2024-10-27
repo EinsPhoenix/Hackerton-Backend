@@ -1,0 +1,130 @@
+/* custom_admin.css */
+:root {
+    --accent100: #f3aeee;
+    --accent200: #E879E1;
+    --accent300: #f446e7;
+    --accent399transparent: rgba(244, 70, 231, 0.5);
+    --accent300selected: rgba(244, 70, 231, 0.2);
+  
+    --neutral100: #FFFFFF;
+    --neutral200: #cbcfcf;
+    --neutral300: #191818;
+    --neutral400: #0c0c0c;
+  
+    --overlay20: rgba(25, 24, 24, 0.2);
+    --overlay50: rgba(25, 24, 24, 0.5);
+  
+    --transparent: rgba(0, 0, 0, 0);
+}
+
+
+body {
+    background-color: var(--neutral400);
+    color: var(--neutral100);
+}
+
+
+
+#header {
+    background-color: var(--overlay20);
+    color: var(--accent300);
+
+    #user-tools a{
+        color: var(--accent300);
+    }
+
+    #logout-form button{
+        color: var(--accent300);
+    }
+
+    #branding {
+
+        #site-name a{
+            color: var(--accent300);
+        }
+    }
+}
+
+ .module caption {
+    background-color: var(--accent200);
+}
+
+.section a {
+    color: black;
+}
+
+
+.module a {
+    color: var(--neutral100);
+}
+
+#content-main > div.app-app.module > table > caption > a {
+    color: var(--neutral400);
+    font-weight: bold;
+}
+
+#content-main > div.app-auth.module > table > caption > a {
+    color: var(--neutral400);
+    font-weight: bold;
+}
+
+#content-main > div.app-socialaccount.module > table > caption > a {
+    color: var(--neutral400);
+    font-weight: bold;
+}
+
+#user-tools > button {
+    display: none;
+}
+
+#nav-sidebar > div.app-app.module.current-app > table > tbody > .current-model {
+    background-color: var(--accent300);
+    opacity: 0.6;
+
+}
+
+#changelist-filter h2 {
+    background-color: var(--accent300);
+}
+
+#changelist-filter a {
+    display: none;
+}
+
+#container > nav > div {
+    background-color: var(--accent399transparent);
+}
+
+#result_list > tbody > tr > td > a {
+    color : var(--accent300);
+}
+
+#result_list > tbody > tr > td > a:hover {
+    color: var(--accent100);
+}
+
+#changelist tbody tr:has(.action-select:checked) {
+    background-color: var(--accent300selected);
+}
+
+#quizabsolved_form > div > div > input {
+    background-color: var(--accent300);
+    color: var(--neutral100);
+}
+
+#quizabsolved_form > div > div > input:hover {
+    background-color: var(--accent200);
+    color: var(--neutral100);
+}
+
+#result_list > tbody > tr > th > a {
+    color: var(--accent300);
+}
+
+#result_list > tbody > tr > th > a:hover {
+    color: var(--accent100);
+}
+
+#toggle-nav-sidebar {
+    color: var(--accent300);
+}

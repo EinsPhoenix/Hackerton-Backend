@@ -125,3 +125,13 @@ CORS_ALLOW_METHODS = [
     "DELETE",
     "OPTIONS",
 ]
+
+# URL-Pfad für statische Dateien (CSS, JS, Bilder)
+STATIC_URL = '/static/'
+
+# Verzeichnis für deine eigenen statischen Dateien
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
