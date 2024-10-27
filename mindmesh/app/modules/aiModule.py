@@ -143,12 +143,12 @@ class GenerateResponse:
             Your a Teacher now.
             I have a set of questions based on the following text: \n\n{input_text}\n\n. 
             These are the questions: \n\n{questions}\n\n. 
-            Below are my answers to the questions: \n\n{answers}\n\n.
+            Below are my answers:\n\n{answers}\n\n.
 
             Your task is to evaluate each answer and assign 1 point for every fully correct answer. 
             If an answer is incorrect or partially correct, assign 0 points. 
             Be careful not to conflate individual names with company names.
-            And provide the correct total_points.
+            And provide the correct total_points. Also when the input from answers is not answered it is automaticly false.
             Check your answers multiple times!
 
             Provide feedback in this format:

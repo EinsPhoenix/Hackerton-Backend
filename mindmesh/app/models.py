@@ -279,11 +279,11 @@ class SolvedThreads(models.Model):
     
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image_url = models.ForeignKey(UploadedImage, on_delete=models.CASCADE, null=True, blank=False)
+    image_url = models.ForeignKey(UploadedImage, on_delete=models.CASCADE, null=True, blank=True)
     bio = models.TextField(blank=True)
     token = models.CharField(max_length=255, blank=True, null=True)
     job = models.ForeignKey(Job, on_delete=models.SET_NULL, blank=True, null=True)
-    solvedThreads = models.ManyToManyField(SolvedThreads, blank=True, null=False)
+    solvedThreads = models.ManyToManyField(SolvedThreads, blank=True, null=True)
 
     def __str__(self):
         return self.user.username
