@@ -7,6 +7,46 @@
 
 **General Backend Setup**
 =====================
+### Note: for simple local testing you have to change the settings.py
+
+- In settings.py there is:
+```bash
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mindmesh',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': '10.240.232.188',
+        'PORT': '5432'
+    }
+} 
+```
+
+- you have to change it to
+```bash
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+```
+
+
+- at the end of this you have to migrate and populate the database
+
+```bash
+python manage.py migrate
+```
+
+```bash
+python manage.py create_tags
+```
+
+
+
+
 
 ## Step 1: Clone the Repository
 
@@ -47,8 +87,6 @@
   ```bash
   pip install -r requirements.txt
   ```
-
-
 
 
 ## Step 5: Start the Development Server
@@ -102,4 +140,7 @@
 
 
 
-# Now start the Frontend 
+# Now start the Frontend or continue in the admin panel 
+
+
+# Normaly .env is not pushed into the repo but without you would not be able to test it :D
