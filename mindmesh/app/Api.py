@@ -117,7 +117,7 @@ def get_texts_for_user(request, authorization: str = Header(None)):
 
     try:
         user_pref_getter = TextsByPrefs(user)
-        threads = user_pref_getter.get_weighted_threads(20)
+        threads = user_pref_getter.get_weighted_threads(30)
 
         return 200, [
             ThreadHelper.format_thread_response(thread, request) for thread in threads
