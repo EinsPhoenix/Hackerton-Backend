@@ -1034,19 +1034,27 @@ def get_user_from_username(
         userprofile = UserProfile.objects.get(user=user)
         job = userprofile.job
         important_infos = []
+        job_name = None
         if job != None:
             important_infos = job.ImportantInformations.all().order_by("-created_at")[
                 :30
+            
             ]
+            job_name = job.name
         if payload.username == user.username:
             response_data = {
                 "username": user.username,
                 "user_id": user.id,
                 "bio": userprofile.bio,
-                "job": job.name if job else None,
+                "job": job_name,
                 "importantInfo": [
-                    job.name if job else None,
-                    {"information": info.information, "created_at": info.created_at.isoformat()} for info in important_infos
+                    {
+                        "name": job_name,
+                        "important_information": [
+                            {"information": info.information, "created_at": info.created_at.isoformat()} 
+                            for info in job.ImportantInformations.all()
+                        ]
+                    }
                 ],
                 "upvoted_threads": [
                     {
@@ -1054,11 +1062,11 @@ def get_user_from_username(
                         "title": thread.titel,
                         "content": thread.content,
                         "content_summary": thread.content_summary,
-                        "main_tag": thread.main_tag.name,  # assuming Tag has a name attribute
+                        "main_tag": thread.main_tag.name,
                         "subtags": [tag.name for tag in thread.subtags.all()],
                         "image_url": thread.image_url.url if thread.image_url else None,
                         "created_at": thread.created_at.isoformat(),
-                        "created_by": thread.created_by.username,  # assuming User has a username attribute
+                        "created_by": thread.created_by.username,
                         "upvotes": thread.upvotes,
                     }
                     for thread in user_activity.upvotedThreads.all()
