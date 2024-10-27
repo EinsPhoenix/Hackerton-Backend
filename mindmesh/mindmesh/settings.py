@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'app',
     'allauth',
     'corsheaders',
+    'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
 ]
