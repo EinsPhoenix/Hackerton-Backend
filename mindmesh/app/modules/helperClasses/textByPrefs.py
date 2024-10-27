@@ -6,14 +6,17 @@ class TextsByPrefs:
         self.preferences = self.get_user_preferences()
 
     def get_user_preferences(self):
-        
-        preferences = UserPreferences.objects.filter(user=self.user, weight__gt=25)
-        return {pref.preference: pref.weight for pref in preferences}
+        # Fetch preferences directly from UserPreferences for the user
+        preferences = UserPreferences.objects.filter(user=self.user, weight__gt=25).values("preference", "weight")
+        return {pref["preference"]: pref["weight"] for pref in preferences}
 
     def get_weighted_threads(self, num_threads=20):
-       
-        preferred_tags = self.preferences.keys()
-        relevant_threads = Thread.objects.filter(main_tag__name__in=preferred_tags)
-        
-        
-        return list(relevant_threads[:num_threads])  
+      
+        preferred_tags = list(self.preferences.keys())
+        relevant_threads = (
+            Thread.objects
+            .filter(main_tag__name__in=preferred_tags)
+            .distinct() 
+            [:num_threads]
+        )
+        return list(relevant_threads)
