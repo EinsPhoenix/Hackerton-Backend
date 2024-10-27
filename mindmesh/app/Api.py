@@ -849,11 +849,11 @@ def delete_user_prefs(request, authorization: str = Header(None)):
 
 
 # get or show preferences
-@api.get("/Prefs", response={200: dict, 201: str, 404: NotFoundSchema})
+@api.get("/Prefs", response={200: dict, 201: dict, 404: NotFoundSchema})
 def get_user_prefs(request, authorization: str = Header(None)):
     try:
         user = get_user_from_token(authorization)
-        if user == None:
+        if user is None:
             return 404, {"success": False, "message": "User not found"}
 
         user_prefs = UserPreferences.objects.filter(user=user)
@@ -865,7 +865,7 @@ def get_user_prefs(request, authorization: str = Header(None)):
 
         return 201, {"success": True, "preferences": prefs_list}
     except Exception as e:
-        return 404, {"success": False, "message": "An error occurred while getting or show preferences"}
+        return 404, {"success": False, "message": "An error occurred while getting or showing preferences"}
 
 
 # get or fill tags
