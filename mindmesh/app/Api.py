@@ -1050,7 +1050,7 @@ def get_user_from_username(
                 ],
                 "upvoted_threads": [
                     {
-                        "id": thread.id_thread,
+                        "id_thread": thread.id_thread,
                         "title": thread.titel,
                         "content": thread.content,
                         "content_summary": thread.content_summary,
@@ -1065,7 +1065,7 @@ def get_user_from_username(
                 ] if user_activity else [],
                 "downvoted_threads": [
                     {
-                        "id": thread.id_thread,
+                        "id_thread": thread.id_thread,
                         "title": thread.titel,
                         "content": thread.content,
                         "content_summary": thread.content_summary,
@@ -1096,7 +1096,7 @@ def get_user_from_username(
                 ] if user_activity else [],
                 "written_threads": [
                     {
-                        "id": thread.id_thread,
+                        "id_thread": thread.id_thread,
                         "title": thread.titel,
                         "content": thread.content,
                         "content_summary": thread.content_summary,
@@ -1110,7 +1110,7 @@ def get_user_from_username(
                     for thread in written_threads
                 ],
                 "shared_questions": [
-                    {"id": question.shared_id, "content": question.content}
+                    {"shared_id": question.shared_id, "content": question.content}
                     for question in shared_questions
                 ],
                 "reports": [
